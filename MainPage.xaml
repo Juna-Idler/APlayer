@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="APlayer.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:APlayer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Style TargetType="Button" x:Key="PlayButtonStyle">
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="16,8,16,8"/>
+        </Style>
+    </Page.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Frame x:Name="MainFrame" Grid.Row="0">
+        </Frame>
+        <Border BorderThickness="4" CornerRadius="4" Background="#8888" BorderBrush="Gray" Margin="2" Grid.Row="1">
+            <StackPanel>
+                <TextBlock x:Name="PlayingTitle" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}" TextAlignment="Center"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="SkipPrev" Click="SkipPrev_Click" Content="⏮️" Grid.Column="0" Style="{StaticResource PlayButtonStyle}"/>
+                    <Button x:Name="StepPrev" Click="StepPrev_Click" Content="⏪" Grid.Column="1" Style="{StaticResource PlayButtonStyle}"/>
+                    <Button x:Name="PlayPause" Click="PlayPause_Click" Content="▶⏸" Grid.Column="2" Style="{StaticResource PlayButtonStyle}"/>
+                    <Button x:Name="StepNext" Click="StepNext_Click" Content="⏩" Grid.Column="3" Style="{StaticResource PlayButtonStyle}"/>
+                    <Button x:Name="SkipNext" Click="SkipNext_Click" Content="⏭️" Grid.Column="4" Style="{StaticResource PlayButtonStyle}"/>
+                </Grid>
+                <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition,Mode=OneWay}"
+                        Maximum="{x:Bind viewModel.Duration,Mode=OneWay}"
+                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Margin="16,8,16,12"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

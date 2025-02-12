@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="APlayer.FolderSelect"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:APlayer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>
+        <ListView x:Name="FoldersView" Background="AliceBlue"
+                  HorizontalAlignment="Stretch"
+                  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
+                  SelectionChanged="FoldersView_SelectionChanged">
+            <ListView.ItemTemplate>
+            <DataTemplate x:DataType="local:SavedFolder">
+                <Grid Margin="2" Padding="4" DoubleTapped="Folder_DoubleTapped" Holding="Grid_Holding">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="64"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button>
+                    </Button>
+                        <TextBlock Text="{x:Bind Name,Mode=OneWay}" Grid.Column="1"
+                                   FontSize="{x:Bind FontSize,Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind Path,Mode=OneTime}" Grid.Column="2" TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid VerticalAlignment="Stretch" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="PickFolderButton" Content="Open a folder" Grid.Column="0"
+            Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" Padding="10" />
+            <TextBlock x:Name="PickFolderOutputTextBlock" TextWrapping="Wrap" Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Red" Tag="red" />
+                        <MenuFlyoutItem Text="Green" Tag="green" />
+                    </MenuFlyout>
+                </TextBlock.ContextFlyout>
+            </TextBlock>
+        </Grid>
+
+    </Grid>
+
+</Page>
