@@ -11,9 +11,10 @@
 
     <Page.Resources>
         <Style TargetType="Button" x:Key="PlayButtonStyle">
-            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="FontSize" Value="30"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="16,8,16,8"/>
         </Style>
     </Page.Resources>
@@ -28,7 +29,27 @@
         <Border BorderThickness="4" CornerRadius="4" Background="#8888" BorderBrush="Gray" Margin="2" Grid.Row="1">
             <StackPanel>
                 <TextBlock x:Name="PlayingTitle" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}" TextAlignment="Center"/>
-                <Grid>
+                <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
+                        Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
+                        TickFrequency="60" TickPlacement="Inline"
+                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Margin="16,8,16,12"
+                        ValueChanged="PlayingPosition_ValueChanged">
+                    <Slider.Header>
+                        <Grid Background="AliceBlue">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="1" Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}" HorizontalAlignment="Left"/>
+                            <TextBlock Grid.Column="2" Text="{x:Bind viewModel.DurationString,Mode=OneWay}" HorizontalAlignment="Center" />
+                            
+                        </Grid>
+                    </Slider.Header>
+                </Slider>
+                <Grid Visibility="Visible">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -42,9 +63,6 @@
                     <Button x:Name="StepNext" Click="StepNext_Click" Content="⏩" Grid.Column="3" Style="{StaticResource PlayButtonStyle}"/>
                     <Button x:Name="SkipNext" Click="SkipNext_Click" Content="⏭️" Grid.Column="4" Style="{StaticResource PlayButtonStyle}"/>
                 </Grid>
-                <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition,Mode=OneWay}"
-                        Maximum="{x:Bind viewModel.Duration,Mode=OneWay}"
-                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Margin="16,8,16,12"/>
             </StackPanel>
         </Border>
     </Grid>

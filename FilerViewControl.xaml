@@ -42,6 +42,17 @@
             </Grid>
         </DataTemplate>
 
+        <DataTemplate x:Key="TextItemTemplate" x:DataType="local:FolderItem">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{x:Bind Name}" />
+                <TextBlock Text="Text File" Grid.Column="1" TextAlignment="Left" />
+            </Grid>
+        </DataTemplate>        
+        
         <DataTemplate x:Key="UnknownItemTemplate" x:DataType="local:FolderItem">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -58,6 +69,8 @@
             Folder="{StaticResource FolderItemTemplate}"
             Audio="{StaticResource AudioItemTemplate}"
             Image="{StaticResource ImageItemTemplate}"
+            Text="{StaticResource TextItemTemplate}"
+                                              
             Unknown="{StaticResource UnknownItemTemplate}"
          />
 

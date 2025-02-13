@@ -23,7 +23,7 @@ namespace APlayer
 
         public PlayerState State { get; private set; } = PlayerState.Null;
 
-        private AudioFileInputNode? NowPlayingInputNode = null;
+        public AudioFileInputNode? NowPlayingInputNode { get; private set; } = null;
 
         private List<AudioFileInputNode> Playlist = [];
         private int CurrentPlaylistIndex = 0;
@@ -162,15 +162,17 @@ namespace APlayer
 
         public void Seek(TimeSpan time)
         {
-            if (AudioGraph == null)
+            if (NowPlayingInputNode == null)
                 return;
-            NowPlayingInputNode?.Seek(time);
+            NowPlayingInputNode.Stop();
+            NowPlayingInputNode.Seek(time);
             BaseTime = time;
             Stopwatch.Reset();
             if (State == PlayerState.Playing)
             {
                 Stopwatch.Start();
             }
+            NowPlayingInputNode.Start();
         }
         public void NextPlay()
         {
@@ -195,6 +197,11 @@ namespace APlayer
         public TimeSpan GetPosition()
         {
             return Stopwatch.Elapsed + BaseTime;
+        }
+
+        public TimeSpan? GetCurrentDuration()
+        {
+            return NowPlayingInputNode?.Duration;
         }
 
         private void NowPlayingInputNode_FileCompleted(AudioFileInputNode sender, object args)

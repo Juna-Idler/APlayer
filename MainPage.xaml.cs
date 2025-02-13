@@ -48,7 +48,7 @@ namespace APlayer
         private void Timer_Tick(object? sender, object e)
         {
             var pos = App.SoundPlayer.GetPosition();
-            viewModel.PlayingPosition = pos.TotalMilliseconds;
+            viewModel.PlayingPosition = pos;
         }
 
         private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<Windows.Media.Audio.AudioFileInputNode> list, int index) e)
@@ -56,7 +56,8 @@ namespace APlayer
             viewModel.Playlist = e.list;
             viewModel.CurrentPlaylistIndex = e.index;
             viewModel.PlayingTitle = e.list[e.index].SourceFile.Name;
-            viewModel.Duration = e.list[e.index].Duration.TotalMilliseconds;
+            viewModel.PlayingPosition = TimeSpan.Zero;
+            viewModel.Duration = e.list[e.index].Duration;
         }
 
         private void SoundPlayer_CurrentIndexChanged(object? sender, int e)
@@ -65,7 +66,8 @@ namespace APlayer
             {
                 viewModel.CurrentPlaylistIndex = e;
                 viewModel.PlayingTitle = viewModel.Playlist[e].SourceFile.Name;
-                viewModel.Duration = viewModel.Playlist[e].Duration.TotalMilliseconds;
+                viewModel.PlayingPosition = TimeSpan.Zero;
+                viewModel.Duration = viewModel.Playlist[e].Duration;
             });
         }
 
@@ -88,6 +90,11 @@ namespace APlayer
         }
         private void StepPrev_Click(object sender, RoutedEventArgs e)
         {
+            var pos = App.SoundPlayer.GetPosition();
+            pos -= TimeSpan.FromSeconds(10);
+            if (pos < TimeSpan.Zero)
+                pos = TimeSpan.Zero;
+            App.SoundPlayer.Seek(pos);
         }
 
         private void PlayPause_Click(object sender, RoutedEventArgs e)
@@ -110,15 +117,31 @@ namespace APlayer
 
         private void StepNext_Click(object sender, RoutedEventArgs e)
         {
+            var d = App.SoundPlayer.GetCurrentDuration();
+            if (d == null)
+                return;
+            var pos = App.SoundPlayer.GetPosition();
+            pos += TimeSpan.FromSeconds(10);
+            if (pos >= d)
+                App.SoundPlayer.NextPlay();
+            else
+                App.SoundPlayer.Seek(pos);
         }
 
         private void SkipNext_Click(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.NextPlay();
         }
+
+        private void PlayingPosition_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (e.NewValue == viewModel.PlayingPosition.TotalSeconds)
+                return;
+            App.SoundPlayer.Seek(TimeSpan.FromSeconds(e.NewValue));
+        }
     }
 
-    class PlayerViewModel: INotifyPropertyChanged
+    class PlayerViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -139,27 +162,35 @@ namespace APlayer
             }
         }
 
-        private double playingPosition;
-        public double PlayingPosition
+        private TimeSpan playingPosition;
+        public TimeSpan PlayingPosition
         {
             get => playingPosition;
             set
             {
                 playingPosition = value;
                 NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(PlayingPositionString));
             }
         }
 
-        private double duration;
-        public double Duration
+        private TimeSpan duration;
+        public TimeSpan Duration
         {
             get => duration;
             set
             {
                 duration = value;
                 NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(DurationString));
             }
         }
+
+        public string PlayingPositionString
+            { get => playingPosition.ToString("hh\\:mm\\:ss\\.ff"); }
+
+        public string DurationString
+        { get => duration.ToString("hh\\:mm\\:ss\\.ff"); }
 
     }
 }

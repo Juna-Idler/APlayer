@@ -211,6 +211,7 @@ namespace APlayer
         public DataTemplate Folder { get; set; } = new();
         public DataTemplate Audio { get; set; } = new();
         public DataTemplate Image { get; set; } = new();
+        public DataTemplate Text { get; set; } = new();
         public DataTemplate Unknown { get; set; } = new();
 
 
@@ -225,6 +226,8 @@ namespace APlayer
                     return Audio;
                 case FolderItem.ItemType.Image:
                     return Image;
+                case FolderItem.ItemType.Text:
+                    return Text;
                 default:
                     return Unknown;
             }
