@@ -22,7 +22,7 @@
         <Button x:Name="BackButton" Click="BackButton_Click"
                 Style="{StaticResource NavigationBackButtonNormalStyle}"
                 ToolTipService.ToolTip="Back"/>
-        <TextBlock x:Name="Title" Grid.Column="1" TextAlignment="Center" VerticalAlignment="Center" />
+        <TextBlock x:Name="Title" Grid.Column="1" TextAlignment="Left" VerticalAlignment="Center" />
 
         <ScrollView x:Name="ScrollView" Grid.Row="1" Grid.ColumnSpan="2" Padding="16">
             <TextBlock x:Name="TextView" TextWrapping="Wrap" FontSize="20" />

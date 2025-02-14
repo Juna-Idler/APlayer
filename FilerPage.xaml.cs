@@ -34,34 +34,59 @@ namespace APlayer
         private StorageFolder? Folder = null;
         private bool Initialized = false;
 
+        private FilerViewControl? CurrentFilerView = null;
+        private readonly Flyout Flyout;
+        private Frame? WindowFrame = null;
+
 
         public FilerPage()
         {
             this.InitializeComponent();
-
+            Flyout = (Flyout)Resources["BackToSelector"];
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
             if (Initialized)
                 return;
 
-            Grid.Children.RemoveAt(Grid.Children.Count - 1);
             if (Folder == null)
-                throw new InvalidDataException();
+                throw new Exception();
             var fvc = new FilerViewControl(Folder, 0);
             fvc.RequestedBack += Fvc_RequestedBack;
             fvc.RequestedFolder += Fvc_RequestedFolder;
             fvc.RequestedFile += Fvc_RequestedFile;
             Grid.SetRow(fvc, 1);
             Grid.SetColumnSpan(fvc, 2);
-
             Grid.Children.Add(fvc);
+            CurrentFilerView = fvc;
 
             var names = Folder.Path.Split(Path.DirectorySeparatorChar);
             Crumbs = [new Crumb(fvc)];
             FolderBreadcrumbBar.ItemsSource = Crumbs;
 
             Initialized = true;
+        }
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+        }
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            if (Initialized)
+                return;
+            (StorageFolder folder, Frame frame) = ((StorageFolder, Frame))e.Parameter;
+            Folder = folder;
+            WindowFrame = frame;
+        }
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        {
+            base.OnNavigatingFrom(e);
+        }
+
+        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        {
+            CurrentFilerView?.OnGamepadButtonChanged(sender, e);
         }
 
         private async void Fvc_RequestedFile(object? sender, (List<FolderItem> folder, FolderItem file) e)
@@ -104,100 +129,122 @@ namespace APlayer
 
         }
 
-        private void Fvc_RequestedBack(object? sender, FilerViewControl e)
+        private void Fvc_RequestedBack(object? sender, FilerViewControl? e)
         {
-            var last = Grid.Children.Last() as FilerViewControl;
-            if (last != null)
-            {
-                last.RequestedBack -= Fvc_RequestedBack;
-                last.RequestedFolder -= Fvc_RequestedFolder;
-                last.RequestedFile -= Fvc_RequestedFile;
-                Grid.Children.Remove(last);
-            }
-            e.RequestedFolder += Fvc_RequestedFolder;
-            e.RequestedBack += Fvc_RequestedBack;
-            e.RequestedFile += Fvc_RequestedFile;
-            Grid.SetRow(e, 1);
-            Grid.SetColumnSpan(e, 2);
-            Grid.Children.Add(e);
-
-            BackButton.IsEnabled = e.Depth > 0;
-            Crumbs.RemoveAt(Crumbs.Count - 1);
+            BackAction();
         }
 
         private void Fvc_RequestedFolder(object? sender, FilerViewControl e)
         {
-            var last = Grid.Children.Last() as FilerViewControl;
-            if (last != null)
-            {
-                last.RequestedBack -= Fvc_RequestedBack;
-                last.RequestedFolder -= Fvc_RequestedFolder;
-                last.RequestedFile -= Fvc_RequestedFile;
-                Grid.Children.Remove(last);
-            }
+            if (CurrentFilerView == null)
+                return;
+
+            CurrentFilerView.RequestedBack -= Fvc_RequestedBack;
+            CurrentFilerView.RequestedFolder -= Fvc_RequestedFolder;
+            CurrentFilerView.RequestedFile -= Fvc_RequestedFile;
+            Grid.Children.Remove(CurrentFilerView);
             e.RequestedFolder += Fvc_RequestedFolder;
             e.RequestedBack += Fvc_RequestedBack;
             e.RequestedFile += Fvc_RequestedFile;
             Grid.SetRow(e, 1);
             Grid.SetColumnSpan(e, 2);
             Grid.Children.Add(e);
-
-            BackButton.IsEnabled = true;
+            CurrentFilerView = e;
 
             Crumbs.Add(new Crumb(e));
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            if (Initialized)
-                return;
-            var param = e.Parameter as StorageFolder;
-            if (param != null)
-            {
-                Folder = param;
-            }
-        }
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
-        {
-            base.OnNavigatingFrom(e);
-        }
+
 
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Frame.GoBack();
+            BackAction();
+        }
+
+        private void BackAction()
+        {
+            if (CurrentFilerView == null)
+                return;
+            var parent = CurrentFilerView.ParentFolder;
+            if (parent == null)
+            {
+                Flyout.ShowAt(FolderBreadcrumbBar);
+                return;
+            }
+
+            CurrentFilerView.RequestedBack -= Fvc_RequestedBack;
+            CurrentFilerView.RequestedFolder -= Fvc_RequestedFolder;
+            CurrentFilerView.RequestedFile -= Fvc_RequestedFile;
+            Grid.Children.Remove(CurrentFilerView);
+
+            parent.RequestedFolder += Fvc_RequestedFolder;
+            parent.RequestedBack += Fvc_RequestedBack;
+            parent.RequestedFile += Fvc_RequestedFile;
+            Grid.SetRow(parent, 1);
+            Grid.SetColumnSpan(parent, 2);
+            Grid.Children.Add(parent);
+            CurrentFilerView = parent;
+
+            Crumbs.RemoveAt(Crumbs.Count - 1);
         }
 
         private void FolderBreadcrumbBar_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
         {
+            if (CurrentFilerView == null)
+                return;
             if (args.Index < Crumbs.Count - 1)
             {
-                var last = Grid.Children.Last() as FilerViewControl;
-                if (last != null)
-                {
-                    last.RequestedBack -= Fvc_RequestedBack;
-                    last.RequestedFolder -= Fvc_RequestedFolder;
-                    last.RequestedFile -= Fvc_RequestedFile;
-                    Grid.Children.Remove(last);
-                }
                 var folder = (args.Item as Crumb)?.Folder;
-                if (folder != null)
-                {
-                    folder.RequestedFolder += Fvc_RequestedFolder;
-                    folder.RequestedBack += Fvc_RequestedBack;
-                    folder.RequestedFile += Fvc_RequestedFile;
-                    Grid.SetRow(folder, 1);
-                    Grid.SetColumnSpan(folder, 2);
-                    Grid.Children.Add(folder);
+                if (folder == null)
+                    return;
 
-                    BackButton.IsEnabled = folder.Depth > 0;
-                    while (Crumbs.Count > args.Index + 1)
-                    {
-                        Crumbs.RemoveAt(Crumbs.Count - 1);
-                    }
+                CurrentFilerView.RequestedBack -= Fvc_RequestedBack;
+                CurrentFilerView.RequestedFolder -= Fvc_RequestedFolder;
+                CurrentFilerView.RequestedFile -= Fvc_RequestedFile;
+                Grid.Children.Remove(CurrentFilerView);
+
+                folder.RequestedFolder += Fvc_RequestedFolder;
+                folder.RequestedBack += Fvc_RequestedBack;
+                folder.RequestedFile += Fvc_RequestedFile;
+                Grid.SetRow(folder, 1);
+                Grid.SetColumnSpan(folder, 2);
+                Grid.Children.Add(folder);
+                CurrentFilerView = folder;
+
+                while (Crumbs.Count > args.Index + 1)
+                {
+                    Crumbs.RemoveAt(Crumbs.Count - 1);
                 }
             }
         }
+
+        private void Flyout_Opened(object sender, object e)
+        {
+            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.ButtonsChanged += OnFlyout_Gamepad_ButtonsChanged; 
+        }
+
+        private void Flyout_Closed(object sender, object e)
+        {
+            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+            App.Gamepad.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
+        }
+        private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
+                {
+                    WindowFrame?.Navigate(typeof(FolderSelect));
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
+                {
+                    Flyout.Hide();
+                }
+            });
+        }
+
     }
 
 

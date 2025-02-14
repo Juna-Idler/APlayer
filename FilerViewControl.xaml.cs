@@ -29,7 +29,7 @@ namespace APlayer
 {
     public sealed partial class FilerViewControl : UserControl
     {
-        public event EventHandler<FilerViewControl>? RequestedBack;
+        public event EventHandler<FilerViewControl?>? RequestedBack;
         public event EventHandler<FilerViewControl>? RequestedFolder;
 
         public event EventHandler<(List<FolderItem>,FolderItem)>? RequestedFile;
@@ -41,8 +41,7 @@ namespace APlayer
         public StorageFolder Folder { get; private set; }
         public uint Depth { get; private set; }
 
-        private readonly FilerViewControl? ParentFolder = null;
-
+        public FilerViewControl? ParentFolder { get; private set; }
 
         public FilerViewControl(StorageFolder folder,uint depth = 0,FilerViewControl? parent = null)
         {
@@ -64,16 +63,15 @@ namespace APlayer
                 _ = item.SetExtra();
             }
             FolderListView.ItemsSource = Items;
+            FolderListView.SelectedIndex = 0;
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged += OnGamepadButtonChanged;
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged -= OnGamepadButtonChanged;
         }
 
         void EnterFolder(FolderItem item)
@@ -95,7 +93,7 @@ namespace APlayer
         }
 
 
-        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased) e)
+        public void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
@@ -103,18 +101,21 @@ namespace APlayer
                 {
                     if (FolderListView.SelectedIndex > 0)
                         FolderListView.SelectedIndex--;
+                    else
+                        FolderListView.SelectedIndex = Items.Count - 1;
                     FolderListView.ScrollIntoView(FolderListView.SelectedItem);
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.DOWN))
                 {
                     if (FolderListView.SelectedIndex < Items.Count - 1)
                         FolderListView.SelectedIndex++;
+                    else
+                        FolderListView.SelectedIndex = 0;
                     FolderListView.ScrollIntoView(FolderListView.SelectedItem);
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
-                    if (ParentFolder != null)
-                        RequestedBack?.Invoke(this, ParentFolder);
+                    RequestedBack?.Invoke(this, ParentFolder);
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.RIGHT) || e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
                 {

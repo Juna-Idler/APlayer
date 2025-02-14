@@ -80,8 +80,15 @@ namespace APlayer
                 rootFolderPath = param.Path;
                 rootFolder = await StorageFolder.GetFolderFromPathAsync(param.Path);
 
-                MainFrame.Navigate(typeof(FilerPage),rootFolder);
+                MainFrame.Navigate(typeof(FilerPage),(rootFolder,Frame));
             }
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            App.SoundPlayer.Stop();
+            App.SoundPlayer.SetPlayList([], 0);
+            base.OnNavigatedFrom(e);
         }
 
         private void SkipPrev_Click(object sender, RoutedEventArgs e)

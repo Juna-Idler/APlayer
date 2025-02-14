@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.ApplicationModel.VoiceCommands;
+using System.Text.Json.Serialization;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -36,7 +37,11 @@ namespace APlayer
 
         public ObservableCollection<SavedFolder> savedFolders = [];
 
-
+        private readonly JsonSerializerOptions options = new()
+        {
+            IgnoreReadOnlyProperties = true,
+            WriteIndented = true
+        };
 
         public FolderSelect()
         {
@@ -91,7 +96,8 @@ namespace APlayer
                         FoldersView.SelectedIndex++;
                 });
             }
-            if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT) ||
+            if (e.pressed.HasFlag(XInput.Buttons.RIGHT) ||
+                e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT) ||
                 e.pressed.HasFlag(XInput.Buttons.A))
             {
                 App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
@@ -131,7 +137,7 @@ namespace APlayer
                 savedFolders.Add(new SavedFolder() { Name = folder.Name, Path = folder.Path });
                 ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-                var json = JsonSerializer.Serialize(savedFolders);
+                var json = JsonSerializer.Serialize(savedFolders, options);
                 localSettings.Values["SavedFolders"] = json;
 
             }
@@ -142,7 +148,7 @@ namespace APlayer
             }
         }
 
-        private async Task<StorageFolder?> OpenFolderPicker(Window window)
+        private static async Task<StorageFolder?> OpenFolderPicker(Window window)
         {
             FolderPicker picker = new Windows.Storage.Pickers.FolderPicker();
 
@@ -153,7 +159,7 @@ namespace APlayer
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hWnd);
 
             // Set options for your folder picker
-            picker.SuggestedStartLocation = PickerLocationId.Desktop;
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
             picker.FileTypeFilter.Add("*");
 
             // Open the picker for the user to pick a folder
@@ -177,11 +183,6 @@ namespace APlayer
         }
         
 
-        private void Grid_Holding(object sender, HoldingRoutedEventArgs e)
-        {
-            PickFolderOutputTextBlock.Text += "Holding ";
-        }
-
         private void FoldersView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var add = e.AddedItems.FirstOrDefault() as SavedFolder;
@@ -196,6 +197,18 @@ namespace APlayer
             }
         }
 
+        private void MenuFlyoutItem_Delete_Click(object sender, RoutedEventArgs e)
+        {
+            var item = sender as MenuFlyoutItem;
+            if (item != null)
+            {
+                var folder = item.DataContext as SavedFolder;
+                if (folder != null)
+                {
+                    savedFolders.Remove(folder);
+                }
+            }
+        }
     }
 
 
@@ -212,6 +225,7 @@ namespace APlayer
         private bool selected = false;
         private string name = "";
 
+        [JsonIgnore]
         public bool Selected
         {
             get => selected;
@@ -249,6 +263,7 @@ namespace APlayer
         }
 
         public string Path { get; set; } = "";
+
     }
 
 

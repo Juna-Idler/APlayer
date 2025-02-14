@@ -43,9 +43,9 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="1" Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}" HorizontalAlignment="Left"/>
+                            <TextBlock Grid.Column="1" Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}" HorizontalAlignment="Left" />
                             <TextBlock Grid.Column="2" Text="{x:Bind viewModel.DurationString,Mode=OneWay}" HorizontalAlignment="Center" />
-                            
+
                         </Grid>
                     </Slider.Header>
                 </Slider>
@@ -59,7 +59,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="SkipPrev" Click="SkipPrev_Click" Content="⏮️" Grid.Column="0" Style="{StaticResource PlayButtonStyle}"/>
                     <Button x:Name="StepPrev" Click="StepPrev_Click" Content="⏪" Grid.Column="1" Style="{StaticResource PlayButtonStyle}"/>
-                    <Button x:Name="PlayPause" Click="PlayPause_Click" Content="▶⏸" Grid.Column="2" Style="{StaticResource PlayButtonStyle}"/>
+                    <Button x:Name="PlayPause" Click="PlayPause_Click" Content="⏯️" Grid.Column="2" Style="{StaticResource PlayButtonStyle}"/>
                     <Button x:Name="StepNext" Click="StepNext_Click" Content="⏩" Grid.Column="3" Style="{StaticResource PlayButtonStyle}"/>
                     <Button x:Name="SkipNext" Click="SkipNext_Click" Content="⏭️" Grid.Column="4" Style="{StaticResource PlayButtonStyle}"/>
                 </Grid>

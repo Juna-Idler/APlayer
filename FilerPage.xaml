@@ -8,7 +8,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:storage="using:Windows.Storage"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    NavigationCacheMode="Required" Loaded="Page_Loaded">
+    NavigationCacheMode="Required" Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+    <Page.Resources>
+        <Flyout x:Key="BackToSelector" Placement="BottomEdgeAlignedLeft" Opened="Flyout_Opened" Closed="Flyout_Closed" LightDismissOverlayMode="On">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Margin="8" FontSize="24">Back to Folder Select</TextBlock>
+                <Button Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="32">←</Button>
+            </Grid>
+        </Flyout>
+    </Page.Resources>
 
     <Grid x:Name="Grid">
         <Grid.RowDefinitions>
@@ -22,12 +37,10 @@
         
         <Button x:Name="BackButton" Click="BackButton_Click"
                 Style="{StaticResource NavigationBackButtonNormalStyle}"
-                IsEnabled="False" 
                 ToolTipService.ToolTip="Back"/>
         <BreadcrumbBar x:Name="FolderBreadcrumbBar" Grid.Column="1" VerticalAlignment="Center"
                        ItemClicked="FolderBreadcrumbBar_ItemClicked" >
         </BreadcrumbBar>
-        <StackPanel x:Name="FilerView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-        </StackPanel>
+        <!-- Insert FilerViewControl  -->
     </Grid>
 </Page>

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
@@ -27,16 +28,29 @@ namespace APlayer
     {
         private IStorageFile? File = null;
 
+        private readonly DispatcherTimer timer = new();
+        private double repeat_scroll = 0;
+        private ScrollingScrollOptions options = new( ScrollingAnimationMode.Auto );
+
+        const int repeat_scroll_amount = 240;
+
         public TextViewPage()
         {
             this.InitializeComponent();
+            timer.Interval = TimeSpan.FromSeconds(0.20);
+            timer.Tick += Timer_Tick;
+        }
+
+        private void Timer_Tick(object? sender, object e)
+        {
+            ScrollView.ScrollBy(0, repeat_scroll,options);
+            repeat_scroll *= 1.1;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
-            var (folder, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
+            var (_, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
             File = file.Item as IStorageFile;
         }
 
@@ -47,10 +61,22 @@ namespace APlayer
                 if (e.pressed.HasFlag(XInput.Buttons.UP))
                 {
                     ScrollView.ScrollBy(0, -120);
+                    repeat_scroll = -repeat_scroll_amount;
+                    timer.Start();
+                }
+                if (e.rereased.HasFlag(XInput.Buttons.UP))
+                {
+                    timer.Stop();
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.DOWN))
                 {
                     ScrollView.ScrollBy(0, +120);
+                    repeat_scroll = repeat_scroll_amount;
+                    timer.Start();
+                }
+                if (e.rereased.HasFlag(XInput.Buttons.DOWN))
+                {
+                    timer.Stop();
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
@@ -64,7 +90,6 @@ namespace APlayer
                 }
             });
         }
-
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
@@ -93,8 +118,8 @@ namespace APlayer
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            timer.Stop();
             App.Gamepad.ButtonsChanged -= OnGamepadButtonChanged;
-
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
