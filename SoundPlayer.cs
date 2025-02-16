@@ -8,6 +8,7 @@ using Windows.Media.Core;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace APlayer
 {
@@ -19,14 +20,13 @@ namespace APlayer
         public AudioGraph? AudioGraph { get; private set; }
         public AudioDeviceOutputNode? DeviceOutputNode { get; private set; }
 
-        public enum PlayerState { Null, Stoped, Playing, Paused }
+        public enum PlayerState { Null,Empty, Stoped, Playing, Paused }
 
         public PlayerState State { get; private set; } = PlayerState.Null;
 
-        public AudioFileInputNode? NowPlayingInputNode { get; private set; } = null;
+        public AudioFileInputNode? CurrentInputNode { get; private set; } = null;
 
-        private List<AudioFileInputNode> Playlist = [];
-        private int CurrentPlaylistIndex = 0;
+        private readonly List<AudioFileInputNode> Playlist = [];
 
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
@@ -55,7 +55,7 @@ namespace APlayer
                 }
                 DeviceOutputNode = result.DeviceOutputNode;
             }
-            State = PlayerState.Stoped;
+            State = PlayerState.Empty;
         }
 
         public async Task SetPlayList(IEnumerable<IStorageFile> list, int index = 0)
@@ -79,44 +79,81 @@ namespace APlayer
                     Playlist.Add(result.FileInputNode);
                 }
             }
-            CurrentPlaylistIndex = Math.Clamp(index, 0, Playlist.Count - 1);
-            PlaylistChanged?.Invoke(this, (Playlist, CurrentPlaylistIndex));
+            if (Playlist.Count == 0)
+            {
+                State = PlayerState.Empty;
+                CurrentInputNode = null;
+                PlaylistChanged?.Invoke(this, (Playlist, -1));
+            }
+            else
+            {
+                State = PlayerState.Stoped;
+                int i = Math.Clamp(index, 0, Playlist.Count - 1);
+                CurrentInputNode = Playlist[i];
+                PlaylistChanged?.Invoke(this, (Playlist, i));
+            }
         }
-        public void SetCurrentPlaylistIndex(int index)
+        public void ResetPlayList()
         {
+            if (AudioGraph == null)
+                return;
             if (State == PlayerState.Playing || State == PlayerState.Paused)
             {
                 Stop();
             }
-            CurrentPlaylistIndex = Math.Clamp(index, 0, Playlist.Count - 1);
-            CurrentIndexChanged?.Invoke(this, CurrentPlaylistIndex);
+            foreach (var item in Playlist)
+            {
+                item.Dispose();
+            }
+            Playlist.Clear();
+
+            State = PlayerState.Empty;
+            CurrentInputNode = null;
+            PlaylistChanged?.Invoke(this, (Playlist, -1));
+        }
+
+        public void SetCurrentPlaylistIndex(int index)
+        {
+            if (Playlist.Count == 0)
+                return;
+            if (State == PlayerState.Playing || State == PlayerState.Paused)
+            {
+                Stop();
+            }
+            index = Math.Clamp(index, 0, Playlist.Count - 1);
+            CurrentInputNode = Playlist[index];
+            CurrentIndexChanged?.Invoke(this, index);
         }
 
 
         public void PlayStandby()
         {
-            if (State != PlayerState.Stoped)
-                return;
-
             if (AudioGraph == null)
                 return;
 
-            if (CurrentPlaylistIndex < 0 || CurrentPlaylistIndex >= Playlist.Count)
-                CurrentPlaylistIndex = 0;
+            if (State != PlayerState.Stoped)
+                return;
 
-            NowPlayingInputNode = Playlist[CurrentPlaylistIndex];
-            NowPlayingInputNode.AddOutgoingConnection(DeviceOutputNode);
-            NowPlayingInputNode.FileCompleted += NowPlayingInputNode_FileCompleted;
+            if (CurrentInputNode == null)
+            {
+                CurrentInputNode = Playlist.First();
+                CurrentIndexChanged?.Invoke(this, 0);
+            }
+            CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
+            CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
             State = PlayerState.Paused;
         }
 
 
         public void Play()
         {
+            if (AudioGraph == null)
+                return;
+
             switch (State)
             {
                 case PlayerState.Paused:
-                    AudioGraph?.Start();
+                    AudioGraph.Start();
                     Stopwatch.Start();
                     State = PlayerState.Playing;
                     return;
@@ -124,13 +161,15 @@ namespace APlayer
                     return;
                 case PlayerState.Null:
                     return;
+                case PlayerState.Empty:
+                    return;
                 case PlayerState.Stoped:
                     break;
                 default:
                     return;
             }
             PlayStandby();
-            AudioGraph?.Start();
+            AudioGraph.Start();
             Stopwatch.Start();
             State = PlayerState.Playing;
         }
@@ -138,12 +177,13 @@ namespace APlayer
         {
             if (AudioGraph == null)
                 return;
+            if (State == PlayerState.Empty)
+                return;
             AudioGraph.Stop();
-            if (NowPlayingInputNode != null)
+            if (CurrentInputNode != null)
             {
-                NowPlayingInputNode.RemoveOutgoingConnection(DeviceOutputNode);
-                NowPlayingInputNode.FileCompleted -= NowPlayingInputNode_FileCompleted;
-                NowPlayingInputNode = null;
+                CurrentInputNode.RemoveOutgoingConnection(DeviceOutputNode);
+                CurrentInputNode.FileCompleted -= CurrentInputNode_FileCompleted;
             }
             State = PlayerState.Stoped;
             Stopwatch.Reset();
@@ -162,35 +202,46 @@ namespace APlayer
 
         public void Seek(TimeSpan time)
         {
-            if (NowPlayingInputNode == null)
+            if (CurrentInputNode == null)
                 return;
-            NowPlayingInputNode.Stop();
-            NowPlayingInputNode.Seek(time);
+            CurrentInputNode.Stop();
+            CurrentInputNode.Seek(time);
             BaseTime = time;
             Stopwatch.Reset();
             if (State == PlayerState.Playing)
             {
                 Stopwatch.Start();
             }
-            NowPlayingInputNode.Start();
+            CurrentInputNode.Start();
         }
         public void NextPlay()
         {
-            Stop();
-            CurrentPlaylistIndex++;
-            if (CurrentPlaylistIndex >= Playlist.Count)
+            if (AudioGraph == null || State == PlayerState.Empty)
                 return;
+            Stop();
+            int index = Playlist.FindIndex(item => item == CurrentInputNode);
+            index++;
+            if (index >= Playlist.Count)
+            {
+                CurrentInputNode = null;
+                CurrentIndexChanged?.Invoke(this, -1);
+                return;
+            }
+            CurrentInputNode = Playlist[index];
             Play();
-            CurrentIndexChanged?.Invoke(this, CurrentPlaylistIndex);
+            CurrentIndexChanged?.Invoke(this, index);
         }
         public void PreviousPlay()
         {
+            if (AudioGraph == null || State == PlayerState.Empty)
+                return;
             Stop();
-            CurrentPlaylistIndex--;
-            if (CurrentPlaylistIndex < 0)
+            int index = Playlist.FindIndex(item => item == CurrentInputNode);
+            index--;
+            if (index < 0)
                 return;
             Play();
-            CurrentIndexChanged?.Invoke(this, CurrentPlaylistIndex);
+            CurrentIndexChanged?.Invoke(this, index);
         }
 
 
@@ -201,10 +252,10 @@ namespace APlayer
 
         public TimeSpan? GetCurrentDuration()
         {
-            return NowPlayingInputNode?.Duration;
+            return CurrentInputNode?.Duration;
         }
 
-        private void NowPlayingInputNode_FileCompleted(AudioFileInputNode sender, object args)
+        private void CurrentInputNode_FileCompleted(AudioFileInputNode sender, object args)
         {
             NextPlay();
         }

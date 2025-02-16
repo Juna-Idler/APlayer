@@ -225,9 +225,14 @@ namespace APlayer
             App.Gamepad.ButtonsChanged += OnFlyout_Gamepad_ButtonsChanged; 
         }
 
+        private bool Terminating = false;
         private void Flyout_Closed(object sender, object e)
         {
-            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+            if (Terminating)
+                Terminating = false;
+            else
+                App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+
             App.Gamepad.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
         }
         private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
@@ -236,6 +241,8 @@ namespace APlayer
             {
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
+                    Terminating = true;
+                    Flyout.Hide();
                     WindowFrame?.Navigate(typeof(FolderSelect));
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
@@ -244,6 +251,7 @@ namespace APlayer
                 }
             });
         }
+
 
     }
 

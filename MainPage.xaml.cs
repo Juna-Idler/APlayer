@@ -55,9 +55,18 @@ namespace APlayer
         {
             viewModel.Playlist = e.list;
             viewModel.CurrentPlaylistIndex = e.index;
-            viewModel.PlayingTitle = e.list[e.index].SourceFile.Name;
-            viewModel.PlayingPosition = TimeSpan.Zero;
-            viewModel.Duration = e.list[e.index].Duration;
+            if (e.index < 0)
+            {
+                viewModel.PlayingTitle = "";
+                viewModel.PlayingPosition = TimeSpan.Zero;
+                viewModel.Duration = TimeSpan.Zero;
+            }
+            else
+            {
+                viewModel.PlayingTitle = e.list[e.index].SourceFile.Name;
+                viewModel.PlayingPosition = TimeSpan.Zero;
+                viewModel.Duration = e.list[e.index].Duration;
+            }
         }
 
         private void SoundPlayer_CurrentIndexChanged(object? sender, int e)
@@ -65,30 +74,40 @@ namespace APlayer
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 viewModel.CurrentPlaylistIndex = e;
-                viewModel.PlayingTitle = viewModel.Playlist[e].SourceFile.Name;
-                viewModel.PlayingPosition = TimeSpan.Zero;
-                viewModel.Duration = viewModel.Playlist[e].Duration;
+                if (e < 0)
+                {
+                    viewModel.PlayingTitle = "";
+                    viewModel.PlayingPosition = TimeSpan.Zero;
+                    viewModel.Duration = TimeSpan.Zero;
+                }
+                else
+                {
+                    viewModel.PlayingTitle = viewModel.Playlist[e].SourceFile.Name;
+                    viewModel.PlayingPosition = TimeSpan.Zero;
+                    viewModel.Duration = viewModel.Playlist[e].Duration;
+                }
             });
         }
 
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             var param = e.Parameter as SavedFolder;
             if (param != null)
             {
                 rootFolderPath = param.Path;
-                rootFolder = await StorageFolder.GetFolderFromPathAsync(param.Path);
-
-                MainFrame.Navigate(typeof(FilerPage),(rootFolder,Frame));
             }
         }
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            rootFolder = await StorageFolder.GetFolderFromPathAsync(rootFolderPath);
+            MainFrame.Navigate(typeof(FilerPage), (rootFolder, Frame));
+        }
 
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.Stop();
-            App.SoundPlayer.SetPlayList([], 0);
-            base.OnNavigatedFrom(e);
+            App.SoundPlayer.ResetPlayList();
         }
 
         private void SkipPrev_Click(object sender, RoutedEventArgs e)
@@ -146,6 +165,7 @@ namespace APlayer
                 return;
             App.SoundPlayer.Seek(TimeSpan.FromSeconds(e.NewValue));
         }
+
     }
 
     class PlayerViewModel : INotifyPropertyChanged

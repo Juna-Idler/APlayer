@@ -12,44 +12,56 @@
         <DataTemplate x:Key="FolderItemTemplate" x:DataType="local:FolderItem">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Name}" />
-                <TextBlock Text="Folder" Grid.Column="1" TextAlignment="Left" />
+                <Image Source="/Assets/IconFolder.svg" Height="32" Margin="0,0,8,0" />
+                <TextBlock Text="{x:Bind Name}" FontSize="16" Grid.Column="1"  VerticalAlignment="Center" />
+                <TextBlock Text="Folder" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="AudioItemTemplate" x:DataType="local:FolderItem">
-            <Grid>
+            <Grid ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Name}" />
-                <TextBlock Text="{x:Bind Extra,Mode=OneWay}" Grid.Column="1" TextAlignment="Left" />
+                <Image Source="/Assets/IconAudio.svg" Height="32" />
+                <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
+                <TextBlock Text="{x:Bind Extra,Mode=OneWay}" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
+                <TextBlock Text="{x:Bind Extention}" Grid.Column="3"  VerticalAlignment="Center" TextAlignment="Left" />
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="ImageItemTemplate" x:DataType="local:FolderItem">
-            <Grid Margin="0,2,0,2">
+            <Grid ColumnSpacing="2" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Image Height="128" Source="{x:Bind Item.Path}"/>
-                <TextBlock Text="{x:Bind Name}"  Grid.Column="1" VerticalAlignment="Center" />
+                <Image Height="128" Source="{x:Bind Item.Path}" Margin="0,2,4,2"/>
+                <TextBlock Text="{x:Bind Name}" FontSize="20"  Grid.Column="1" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Bind Extention}" Grid.Column="2" TextAlignment="Left" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="TextItemTemplate" x:DataType="local:FolderItem">
-            <Grid>
+            <Grid ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Name}" />
-                <TextBlock Text="Text File" Grid.Column="1" TextAlignment="Left" />
+                <Image Source="/Assets/IconText.svg" Height="32"/>
+                <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
+                <TextBlock Text="Text File" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
+                <TextBlock Text="{x:Bind Extention}" Grid.Column="3" TextAlignment="Left" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>        
         

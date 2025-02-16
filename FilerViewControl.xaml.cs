@@ -57,7 +57,7 @@ namespace APlayer
         private async void BuildListView()
         {
             var items = await Folder.GetItemsAsync();
-            Items = new List<FolderItem>(items.Select(item => new FolderItem(item)));
+            Items = new List<FolderItem>(items.Select(item => new FolderItem(item)).OrderBy(item=>item.Extention));
             foreach (var item in Items)
             {
                 _ = item.SetExtra();
@@ -134,7 +134,7 @@ namespace APlayer
             });
         }
     }
-    public partial class FolderItem(IStorageItem storageItem) : INotifyPropertyChanged
+    public partial class FolderItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -143,38 +143,46 @@ namespace APlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public FolderItem(IStorageItem storageItem)
+        {
+            Item = storageItem;
 
-        public IStorageItem Item { get; } = storageItem;
+            if (Item.IsOfType(StorageItemTypes.Folder))
+            {
+                Type = ItemType.Folder;
+                Extention = "";
+            }
+            else if (Item.IsOfType(StorageItemTypes.File))
+            {
+                var file = (StorageFile)Item;
+                if (file.ContentType.StartsWith("audio"))
+                    Type = ItemType.Audio;
+                else if (file.ContentType.StartsWith("image"))
+                    Type = ItemType.Image;
+                else if (file.ContentType.StartsWith("text"))
+                    Type = ItemType.Text;
+                else if (file.ContentType == "application/pdf")
+                    Type = ItemType.Pdf;
+                else
+                    Type = ItemType.Unknown;
+                Extention = file.FileType.ToUpper();
+            }
+            else
+            {
+                Type = ItemType.Unknown;
+                Extention = "???";
+            }
+        }
+
+
+        public IStorageItem Item { get; }
         public FilerViewControl? Created { get; set; } = null;
 
-        public enum ItemType {NULL, Unknown, Folder, Audio, Image, Text, Pdf }
+        public enum ItemType {Unknown, Folder, Audio, Image, Text, Pdf }
 
-        private ItemType _itemType = ItemType.NULL;
-        public ItemType Type { get
-            {
-                if (_itemType != ItemType.NULL)
-                    return _itemType;
-                if (Item.IsOfType(StorageItemTypes.Folder))
-                    _itemType = ItemType.Folder;
-                else if (Item.IsOfType(StorageItemTypes.File))
-                {
-                    var file = (StorageFile)Item;
-                    if (file.ContentType.StartsWith("audio"))
-                        _itemType = ItemType.Audio;
-                    else if (file.ContentType.StartsWith("image"))
-                        _itemType = ItemType.Image;
-                    else if (file.ContentType.StartsWith("text"))
-                        _itemType = ItemType.Text;
-                    else if (file.ContentType == "application/pdf")
-                        _itemType = ItemType.Pdf;
-                    else
-                        _itemType = ItemType.Unknown;
-                }
-                else
-                    _itemType = ItemType.Unknown;
+        public ItemType Type { get; }
 
-                return _itemType;
-            } }
+        public string Extention { get; }
 
         public string Name { get => Item.Name; }
         public object? Extra { get;private set; } = null;
