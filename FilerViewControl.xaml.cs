@@ -125,13 +125,30 @@ namespace APlayer
                         if (item != null)
                         {
                             if (item.Type == FolderItem.ItemType.Folder)
-                                EnterFolder((FolderItem)FolderListView.SelectedItem);
+                                EnterFolder(item);
                             else
                                 RequestedFile?.Invoke(this, (Items,item));
                         }
                     }
                 }
             });
+        }
+
+        private void Item_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            var grid = sender as Grid;
+            if (grid != null)
+            {
+                var item = grid.DataContext as FolderItem;
+                if (item != null)
+                {
+                    if (item.Type == FolderItem.ItemType.Folder)
+                        EnterFolder((FolderItem)item);
+                    else
+                        RequestedFile?.Invoke(this, (Items, item));
+                }
+            }
+
         }
     }
     public partial class FolderItem : INotifyPropertyChanged

@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:storage="using:Windows.Storage"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    NavigationCacheMode="Required" Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+    NavigationCacheMode="Required" Loaded="Page_Loaded" Unloaded="Page_Unloaded" PointerPressed="Page_PointerPressed">
     <Page.Resources>
         <Flyout x:Key="BackToSelector" Placement="BottomEdgeAlignedLeft" Opened="Flyout_Opened" Closed="Flyout_Closed" LightDismissOverlayMode="On">
             <Grid Margin="8">
@@ -20,7 +20,8 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <TextBlock Margin="8" FontSize="24">Back to Folder Select</TextBlock>
-                <Button Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="32">←</Button>
+                <Button Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="32"
+                        Click="ApprovalButton_Click">←</Button>
             </Grid>
         </Flyout>
     </Page.Resources>
