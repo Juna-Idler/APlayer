@@ -1,27 +1,19 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.ApplicationModel.VoiceCommands;
 using System.Text.Json.Serialization;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -35,7 +27,7 @@ namespace APlayer
     public sealed partial class FolderSelect : Page
     {
 
-        public ObservableCollection<SavedFolder> savedFolders = [];
+        public ObservableCollection<SavedFolder> SavedFolders = [];
 
         private readonly JsonSerializerOptions options = new()
         {
@@ -55,13 +47,35 @@ namespace APlayer
                 var f = JsonSerializer.Deserialize<ObservableCollection<SavedFolder>>((string)folders);
                 if (f != null)
                 {
-                    savedFolders = f;
+                    SavedFolders = f;
                 }
             }
 
-            FoldersView.ItemsSource = savedFolders;
+            FoldersView.ItemsSource = SavedFolders;
+            SavedFolders.CollectionChanged += SavedFolders_CollectionChanged;
 
             FoldersView.SelectedIndex = 0;
+        }
+
+        private void SavedFolders_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                    {
+                    }
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                    {
+                    }
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+                    break;
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -92,7 +106,7 @@ namespace APlayer
             {
                 App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (FoldersView.SelectedIndex < savedFolders.Count - 1)
+                    if (FoldersView.SelectedIndex < SavedFolders.Count - 1)
                         FoldersView.SelectedIndex++;
                 });
             }
@@ -134,10 +148,10 @@ namespace APlayer
 
             if (folder != null)
             {
-                savedFolders.Add(new SavedFolder() { Name = folder.Name, Path = folder.Path });
+                SavedFolders.Add(new SavedFolder() { Name = folder.Name, Path = folder.Path });
                 ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-                var json = JsonSerializer.Serialize(savedFolders, options);
+                var json = JsonSerializer.Serialize(SavedFolders, options);
                 localSettings.Values["SavedFolders"] = json;
 
             }
@@ -205,7 +219,7 @@ namespace APlayer
                 var folder = item.DataContext as SavedFolder;
                 if (folder != null)
                 {
-                    savedFolders.Remove(folder);
+                    SavedFolders.Remove(folder);
                 }
             }
         }

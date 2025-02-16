@@ -25,7 +25,7 @@
         </Grid.ColumnDefinitions>
         <ListView x:Name="FoldersView" Background="AliceBlue"
                   HorizontalAlignment="Stretch"
-                  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
+                  CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
                   SelectionChanged="FoldersView_SelectionChanged">
             <ListView.ItemTemplate>
             <DataTemplate x:DataType="local:SavedFolder">

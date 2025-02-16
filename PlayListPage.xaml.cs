@@ -1,16 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Storage;
 using Windows.Media.Audio;
@@ -36,6 +28,32 @@ namespace APlayer
         public PlaylistPage()
         {
             this.InitializeComponent();
+            List.CollectionChanged += List_CollectionChanged;
+        }
+
+        private void List_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                    {
+                        var item = e.NewItems?[0] as PlaylistItem;
+                        if (item != null)
+                            App.SoundPlayer.Playlist.Insert(e.NewStartingIndex, item.Track);
+                    }
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                    {
+                        App.SoundPlayer.Playlist.RemoveAt(e.OldStartingIndex);
+                    }
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+                    break;
+            }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -63,8 +81,7 @@ namespace APlayer
         {
             if (fileList.Count > 0)
             {
-                await App.SoundPlayer.SetPlayList(fileList, fileListIndex);
-                App.SoundPlayer.Play();
+                await App.SoundPlayer.SetPlaylist(fileList, fileListIndex);
             }
             if (fileListIndex >= 0)
             {
@@ -72,6 +89,7 @@ namespace APlayer
             }
             List = new(App.SoundPlayer.Playlist.Select(item => new PlaylistItem(item)));
             PlaylistView.ItemsSource = List;
+            List.CollectionChanged += List_CollectionChanged;
 
             int index = App.SoundPlayer.CurrentIndex;
             for (int i = 0; i < List.Count; i++)
@@ -138,6 +156,7 @@ namespace APlayer
         {
             Frame.GoBack();
         }
+
     }
 
     public class PlaylistItem : INotifyPropertyChanged

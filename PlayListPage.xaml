@@ -26,8 +26,7 @@
         <ListView x:Name="PlaylistView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                       Background="AliceBlue"
                   HorizontalAlignment="Stretch"
-                  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
-                  >
+                  CanReorderItems="True" AllowDrop="True" SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:PlaylistItem" >
                     <Grid Margin="2" Padding="4" >

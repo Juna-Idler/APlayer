@@ -67,6 +67,7 @@ namespace APlayer
 
             Initialized = true;
         }
+
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
@@ -79,15 +80,12 @@ namespace APlayer
             Folder = folder;
             WindowFrame = frame;
         }
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
-        {
-            base.OnNavigatingFrom(e);
-        }
 
         private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
         {
             CurrentFilerView?.OnGamepadButtonChanged(sender, e);
         }
+
 
         private void Fvc_RequestedFile(object? sender, (List<FolderItem> folder, FolderItem file) e)
         {

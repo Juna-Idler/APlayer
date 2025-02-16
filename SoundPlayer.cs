@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Media.Audio;
-using Windows.Media.Core;
-using Windows.Storage.Pickers;
 using Windows.Storage;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace APlayer
 {
@@ -63,7 +59,7 @@ namespace APlayer
             State = PlayerState.Empty;
         }
 
-        public async Task SetPlayList(IEnumerable<IStorageFile> list, int index = 0)
+        public async Task SetPlaylist(IEnumerable<IStorageFile> list, int index = 0)
         {
             if (AudioGraph == null)
                 return;
