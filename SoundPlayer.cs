@@ -14,19 +14,24 @@ namespace APlayer
 {
     public class SoundPlayer
     {
-        public event EventHandler<(IReadOnlyList<AudioFileInputNode> list,int index)>? PlaylistChanged;
+        public event EventHandler<(IReadOnlyList<AudioFileInputNode> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
 
         public AudioGraph? AudioGraph { get; private set; }
         public AudioDeviceOutputNode? DeviceOutputNode { get; private set; }
 
-        public enum PlayerState { Null,Empty, Stoped, Playing, Paused }
+        public enum PlayerState { Null, Empty, Stoped, Playing, Paused }
 
         public PlayerState State { get; private set; } = PlayerState.Null;
 
         public AudioFileInputNode? CurrentInputNode { get; private set; } = null;
 
-        private readonly List<AudioFileInputNode> Playlist = [];
+        public List<AudioFileInputNode> Playlist { get; private set; } = [];
+
+        public int CurrentIndex
+        {
+            get => Playlist.FindIndex(item => item == CurrentInputNode);
+        }
 
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
@@ -112,21 +117,8 @@ namespace APlayer
             PlaylistChanged?.Invoke(this, (Playlist, -1));
         }
 
-        public void SetCurrentPlaylistIndex(int index)
-        {
-            if (Playlist.Count == 0)
-                return;
-            if (State == PlayerState.Playing || State == PlayerState.Paused)
-            {
-                Stop();
-            }
-            index = Math.Clamp(index, 0, Playlist.Count - 1);
-            CurrentInputNode = Playlist[index];
-            CurrentIndexChanged?.Invoke(this, index);
-        }
 
-
-        public void PlayStandby()
+        public void Start(TimeSpan start_time)
         {
             if (AudioGraph == null)
                 return;
@@ -139,11 +131,13 @@ namespace APlayer
                 CurrentInputNode = Playlist.First();
                 CurrentIndexChanged?.Invoke(this, 0);
             }
+            CurrentInputNode.Seek(start_time);
             CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
             CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
-            State = PlayerState.Paused;
+            AudioGraph.Start();
+            Stopwatch.Start();
+            State = PlayerState.Playing;
         }
-
 
         public void Play()
         {
@@ -168,10 +162,7 @@ namespace APlayer
                 default:
                     return;
             }
-            PlayStandby();
-            AudioGraph.Start();
-            Stopwatch.Start();
-            State = PlayerState.Playing;
+            Start(TimeSpan.Zero);
         }
         public void Stop()
         {
@@ -214,7 +205,7 @@ namespace APlayer
             }
             CurrentInputNode.Start();
         }
-        public void NextPlay()
+        public void PlayNext()
         {
             if (AudioGraph == null || State == PlayerState.Empty)
                 return;
@@ -231,7 +222,7 @@ namespace APlayer
             Play();
             CurrentIndexChanged?.Invoke(this, index);
         }
-        public void PreviousPlay()
+        public void PlayPrevious()
         {
             if (AudioGraph == null || State == PlayerState.Empty)
                 return;
@@ -240,10 +231,22 @@ namespace APlayer
             index--;
             if (index < 0)
                 return;
+            CurrentInputNode = Playlist[index];
             Play();
             CurrentIndexChanged?.Invoke(this, index);
         }
 
+        public void PlayIndex(int index)
+        {
+            if (AudioGraph == null || State == PlayerState.Empty)
+                return;
+            if (index < 0 || index >= Playlist.Count)
+                return;
+            Stop();
+            CurrentInputNode = Playlist[index];
+            Play();
+            CurrentIndexChanged?.Invoke(this, index);
+        }
 
         public TimeSpan GetPosition()
         {
@@ -257,7 +260,7 @@ namespace APlayer
 
         private void CurrentInputNode_FileCompleted(AudioFileInputNode sender, object args)
         {
-            NextPlay();
+            PlayNext();
         }
     }
 }

@@ -89,19 +89,15 @@ namespace APlayer
             CurrentFilerView?.OnGamepadButtonChanged(sender, e);
         }
 
-        private async void Fvc_RequestedFile(object? sender, (List<FolderItem> folder, FolderItem file) e)
+        private void Fvc_RequestedFile(object? sender, (List<FolderItem> folder, FolderItem file) e)
         {
             switch (e.file.Type)
             {
                 case FolderItem.ItemType.Audio:
                     {
-                        List<IStorageFile> items = new(e.folder
-                            .Where(item => item.Type == FolderItem.ItemType.Audio)
-                            .Select(item => (IStorageFile)item.Item));
-
-                        var index = items.FindIndex(0, item => item.Name == e.file.Name);
-                        await App.SoundPlayer.SetPlayList(items, index);
-                        App.SoundPlayer.Play();
+                        Frame.Navigate(typeof(PlaylistPage),e,
+                            new SlideNavigationTransitionInfo()
+                            { Effect = SlideNavigationTransitionEffect.FromBottom });
                     }
                     break;
                 case FolderItem.ItemType.Image:

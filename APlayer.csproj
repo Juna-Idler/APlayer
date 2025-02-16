@@ -78,7 +78,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="PlayListPage.xaml">
+    <Page Update="PlaylistPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

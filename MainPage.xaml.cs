@@ -112,7 +112,7 @@ namespace APlayer
 
         private void SkipPrev_Click(object sender, RoutedEventArgs e)
         {
-            App.SoundPlayer.PreviousPlay();
+            App.SoundPlayer.PlayPrevious();
         }
         private void StepPrev_Click(object sender, RoutedEventArgs e)
         {
@@ -149,14 +149,14 @@ namespace APlayer
             var pos = App.SoundPlayer.GetPosition();
             pos += TimeSpan.FromSeconds(10);
             if (pos >= d)
-                App.SoundPlayer.NextPlay();
+                App.SoundPlayer.PlayNext();
             else
                 App.SoundPlayer.Seek(pos);
         }
 
         private void SkipNext_Click(object sender, RoutedEventArgs e)
         {
-            App.SoundPlayer.NextPlay();
+            App.SoundPlayer.PlayNext();
         }
 
         private void PlayingPosition_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
