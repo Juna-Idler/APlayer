@@ -12,20 +12,20 @@
 
     <Page.Resources>
         <Style TargetType="Button" x:Key="PlayButtonStyle">
-            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontSize" Value="24"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="16,8,16,8"/>
         </Style>
 
-        <Style TargetType="Border" x:Key="Controlled">
+        <Style TargetType="Grid" x:Key="Controlled">
             <Setter Property="BorderBrush" Value="{ThemeResource SystemAccentColor}" />
             <!--                     BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"/ -->
             <Setter Property="BorderThickness" Value="2" />
         </Style>
 
-        <Style TargetType="Border" x:Key="Uncontrolled">
+        <Style TargetType="Grid" x:Key="Uncontrolled">
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
@@ -39,64 +39,81 @@
         </Grid.RowDefinitions>
         <Frame x:Name="MainFrame" Grid.Row="0">
         </Frame>
-        <Border x:Name="PlayerBorder" Style="{StaticResource Uncontrolled}"
+
+        <Grid x:Name="Player" Style="{StaticResource Uncontrolled}"
                 CornerRadius="4" Background="Transparent" Margin="2" Grid.Row="1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="8"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="8"/>
-                </Grid.ColumnDefinitions>
-                <Rectangle Width="32" Height="{x:Bind viewModel.LeftPeak,Mode=OneWay}" VerticalAlignment="Bottom" Fill="Blue" Grid.Column="0" />
-                <StackPanel Grid.Column="1">
-                    <TextBlock x:Name="PlayingTitle" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}" TextAlignment="Center"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle Width="32" Height="{x:Bind viewModel.LeftPeak,Mode=OneWay}" VerticalAlignment="Bottom" Fill="{ThemeResource SystemAccentColor}" Grid.Column="0" />
+            <StackPanel Grid.Column="1" Margin="8,0">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="PlayingTitle" Grid.Column="0" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}"
+                               VerticalAlignment="Center" TextAlignment="Center" FontSize="20" />
+                    <Slider x:Name="VolumeSlider" Grid.Column="1"
+                            Value="{x:Bind viewModel.Volume,Mode=OneWay}"
+                            TickFrequency="5" TickPlacement="BottomRight" StepFrequency="0.25"
+                            ValueChanged="VolumeSlider_ValueChanged"/>
+                    <TextBlock x:Name="VolumeNumber" Grid.Column="2" VerticalAlignment="Center"
+                               Text="{x:Bind viewModel.VolumeNumber,Mode=OneWay}"
+                               Style="{StaticResource MonospacedFont}" FontSize="20" />
+                </Grid>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
-                        Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
-                        TickFrequency="60" TickPlacement="Inline"
-                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Margin="16,8,16,12"
-                        ValueChanged="PlayingPosition_ValueChanged">
-                        <Slider.Header>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                            Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
+                            TickFrequency="60" TickPlacement="BottomRight"
+                            Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center"
+                            ValueChanged="PlayingPosition_ValueChanged"/>
+                    <TextBlock Grid.Column="1"
+                                   Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}"
+                                   TextAlignment="Right" VerticalAlignment="Bottom"
+                                   FontSize="18"  Style="{StaticResource MonospacedFont}" />
+                    <TextBlock Grid.Column="1" Grid.Row="1"
+                                   Text="{x:Bind viewModel.DurationString,Mode=OneWay}"
+                                   FontSize="18" TextAlignment="Right" VerticalAlignment="Bottom" Style="{StaticResource MonospacedFont}" />
 
-                                <TextBlock Grid.Column="1" Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}" HorizontalAlignment="Left" />
-                                <TextBlock Grid.Column="2" Text="{x:Bind viewModel.DurationString,Mode=OneWay}" HorizontalAlignment="Center" />
-
-                            </Grid>
-                        </Slider.Header>
-                    </Slider>
-                    <Grid Visibility="Visible">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="SkipPrevButton" Click="SkipPrev_Click"  Grid.Column="0" Style="{StaticResource PlayButtonStyle}">
-                            <SymbolIcon Symbol="Previous" Height="32"/>
-                        </Button>
-                        <Button x:Name="StepPrevButton" Click="StepPrev_Click"  Grid.Column="1" Style="{StaticResource PlayButtonStyle}">
-                            <SymbolIcon Symbol="Back" Height="32"/>
-                        </Button>
-                        <Button x:Name="PlayPauseButton" Click="PlayPause_Click" Grid.Column="2" Style="{StaticResource PlayButtonStyle}">
-                            <SymbolIcon Symbol="{x:Bind viewModel.StateButton,Mode=OneWay}" Height="32"/>
-                        </Button>
-                        <Button x:Name="StepNextButton" Click="StepNext_Click"  Grid.Column="3" Style="{StaticResource PlayButtonStyle}">
-                            <SymbolIcon Symbol="Forward" Height="32"/>
-                        </Button>
-                        <Button x:Name="SkipNextButton" Click="SkipNext_Click"  Grid.Column="4" Style="{StaticResource PlayButtonStyle}">
-                            <SymbolIcon Symbol="Next" Height="32"/>
-                        </Button>
-                    </Grid>
-                </StackPanel>
-                <Rectangle Width="32" Height="{x:Bind viewModel.RightPeak,Mode=OneWay}" VerticalAlignment="Bottom" Fill="Blue" Grid.Column="2" />
-            </Grid>
-        </Border>
+                </Grid>
+                <Grid Visibility="Visible">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="SkipPrevButton" Click="SkipPrev_Click"  Grid.Column="0" Style="{StaticResource PlayButtonStyle}">
+                        <SymbolIcon Symbol="Previous" Height="32"/>
+                    </Button>
+                    <Button x:Name="StepPrevButton" Click="StepPrev_Click"  Grid.Column="1" Style="{StaticResource PlayButtonStyle}">
+                        <SymbolIcon Symbol="Back" Height="32"/>
+                    </Button>
+                    <Button x:Name="PlayPauseButton" Click="PlayPause_Click" Grid.Column="2" Style="{StaticResource PlayButtonStyle}">
+                        <SymbolIcon Symbol="{x:Bind viewModel.StateButton,Mode=OneWay}" Height="32"/>
+                    </Button>
+                    <Button x:Name="StepNextButton" Click="StepNext_Click"  Grid.Column="3" Style="{StaticResource PlayButtonStyle}">
+                        <SymbolIcon Symbol="Forward" Height="32"/>
+                    </Button>
+                    <Button x:Name="SkipNextButton" Click="SkipNext_Click"  Grid.Column="4" Style="{StaticResource PlayButtonStyle}">
+                        <SymbolIcon Symbol="Next" Height="32"/>
+                    </Button>
+                </Grid>
+            </StackPanel>
+            <Rectangle Width="32" Height="{x:Bind viewModel.RightPeak,Mode=OneWay}" VerticalAlignment="Bottom" Fill="{ThemeResource SystemAccentColor}" Grid.Column="2" />
+        </Grid>
     </Grid>
 </Page>

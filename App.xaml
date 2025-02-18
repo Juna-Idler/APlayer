@@ -7,6 +7,10 @@
     RequestedTheme="Dark">
     <Application.Resources>
         <ResourceDictionary>
+            <Style x:Key="MonospacedFont" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="ＭＳ ゴシック"/>
+            </Style>
+
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->

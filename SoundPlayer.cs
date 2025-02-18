@@ -35,6 +35,22 @@ namespace APlayer
             get => Playlist.FindIndex(item => item == CurrentInputNode);
         }
 
+        public double OutputGain
+        {
+            get
+            {
+                if (DeviceOutputNode == null)
+                    return 0;
+                else return DeviceOutputNode.OutgoingGain;
+            }
+            set
+            {
+                if (DeviceOutputNode != null)
+                    DeviceOutputNode.OutgoingGain = value;
+            }
+        }
+            
+
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
 
@@ -47,6 +63,9 @@ namespace APlayer
 
         public async Task Initialize()
         {
+            if (AudioGraph != null)
+                return;
+
             AudioGraphSettings settings = new(Windows.Media.Render.AudioRenderCategory.Media);
             {
                 var result = await AudioGraph.CreateAsync(settings);
@@ -86,6 +105,7 @@ namespace APlayer
                 var result = await AudioGraph.CreateFileInputNodeAsync(item);
                 if (result.Status == AudioFileNodeCreationStatus.Success)
                 {
+                    result.FileInputNode.EndTime = result.FileInputNode.Duration;
                     Playlist.Add(result.FileInputNode);
                 }
             }
@@ -102,10 +122,6 @@ namespace APlayer
                 State = PlayerState.Stoped;
                 int i = Math.Clamp(index, 0, Playlist.Count - 1);
                 CurrentInputNode = Playlist[i];
-                CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
-                if (FrameOutputNode != null)
-                    CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
-                CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
                 PlaylistChanged?.Invoke(this, (Playlist, i));
             }
         }
@@ -117,6 +133,7 @@ namespace APlayer
             {
                 Stop();
             }
+            CurrentInputNode = null;
             foreach (var item in Playlist)
             {
                 item.Dispose();
@@ -126,7 +143,6 @@ namespace APlayer
             if (State != PlayerState.Empty)
                 StateChanged?.Invoke(this, PlayerState.Empty);
             State = PlayerState.Empty;
-            CurrentInputNode = null;
             PlaylistChanged?.Invoke(this, (Playlist, -1));
         }
 
@@ -187,7 +203,7 @@ namespace APlayer
         {
             if (AudioGraph == null)
                 return;
-            if (State == PlayerState.Empty)
+            if (State == PlayerState.Empty || State == PlayerState.Stoped)
                 return;
             AudioGraph.Stop();
             if (CurrentInputNode != null)
@@ -219,6 +235,8 @@ namespace APlayer
         public void Seek(TimeSpan time)
         {
             if (CurrentInputNode == null)
+                return;
+            if (time > CurrentInputNode.Duration)
                 return;
             CurrentInputNode.Stop();
             CurrentInputNode.Seek(time);
@@ -291,6 +309,8 @@ namespace APlayer
         public void InsertPeakDetector()
         {
             if (AudioGraph == null) return;
+            if (FrameOutputNode != null)
+                return;
 
             FrameOutputNode = AudioGraph.CreateFrameOutputNode();
             if (CurrentInputNode != null)

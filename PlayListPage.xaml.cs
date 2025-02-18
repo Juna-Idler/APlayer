@@ -97,6 +97,7 @@ namespace APlayer
                 List[i].IsPlaying = i == index;
             }
             PlaylistView.SelectedIndex = index;
+            PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
         }
@@ -129,7 +130,8 @@ namespace APlayer
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
-                    Frame.GoBack();
+                    if (Frame.CanGoBack)
+                        Frame.GoBack();
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
                 { }
@@ -154,7 +156,8 @@ namespace APlayer
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            Frame.GoBack();
+            if (Frame.CanGoBack)
+                Frame.GoBack();
         }
 
     }

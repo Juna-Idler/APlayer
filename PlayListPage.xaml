@@ -28,17 +28,17 @@
                   CanReorderItems="True" AllowDrop="True" SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:PlaylistItem" >
-                    <Grid Margin="2" Padding="4" >
+                    <Grid Margin="2" Padding="0" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="→" Visibility="{x:Bind Visibility,Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind Title}" Grid.Column="1" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{x:Bind Duration}" Grid.Column="2" />
-                        <TextBlock Text="{x:Bind Codec}" Grid.Column="3" />
+                        <SymbolIcon Symbol="Play" Visibility="{x:Bind Visibility,Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind Title}" Grid.Column="1"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind Duration}" Grid.Column="2" Style="{StaticResource MonospacedFont}"
+                                   VerticalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

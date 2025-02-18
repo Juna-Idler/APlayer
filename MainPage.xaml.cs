@@ -28,6 +28,9 @@ namespace APlayer
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        const double GainMax = 10;
+        const double GainMin = -40;
+
         private DispatcherTimer Timer = new();
 
         private string rootFolderPath = "";
@@ -35,8 +38,8 @@ namespace APlayer
 
         PlayerViewModel viewModel { get; set; } = new PlayerViewModel();
 
-        private ConcurrentQueue<float> LeftPeaks = new([0]);
-        private ConcurrentQueue<float> RightPeaks = new([0]);
+        private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
+        private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
 
         readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
         bool changing_interval = false;
@@ -46,6 +49,9 @@ namespace APlayer
         {
             ci_timer.Tick += (s, o) => { changing_interval = false;ci_timer.Stop(); };
             this.InitializeComponent();
+
+            VolumeSlider.Maximum = GainMax;
+            VolumeSlider.Minimum = GainMin;
 
             Timer.Interval = TimeSpan.FromMicroseconds(100);
             Timer.Tick += Timer_Tick;
@@ -72,8 +78,25 @@ namespace APlayer
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
-
             App.SoundPlayer.PeakReported += SoundPlayer_PeakReported;
+
+            VolumeSlider.Value = App.SoundPlayer.OutputGain;
+        }
+
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            App.SoundPlayer.Stop();
+            App.SoundPlayer.ResetPlayList();
+
+            App.Gamepad.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
+            PlayerGamePad.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
+            PlayerGamePad.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
+
+            App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
+            App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
+            App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
+            App.SoundPlayer.PeakReported -= SoundPlayer_PeakReported;
         }
 
         private void SoundPlayer_PeakReported(object? sender, (float left, float right) e)
@@ -90,23 +113,12 @@ namespace APlayer
         }
         public static double ToDecibel(double linear)
         {
-            double d = Math.Log10(linear) * 20;
-            return Math.Clamp(d, -80, 0);
+            return Math.Log10(linear) * 20;
         }
 
-
-        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        public static double FromDecibel(double db)
         {
-            App.SoundPlayer.Stop();
-            App.SoundPlayer.ResetPlayList();
-
-            App.Gamepad.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
-            PlayerGamePad.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
-            PlayerGamePad.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
-
-            App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
-            App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
-            App.SoundPlayer.PeakReported -= SoundPlayer_PeakReported;
+            return Math.Pow(10, db / 20);
         }
 
 
@@ -119,7 +131,7 @@ namespace APlayer
                 {
                     App.Gamepad.Stop();
                     PlayerGamePad.Start();
-                    PlayerBorder.Style = (Style)this.Resources["Controlled"];
+                    Player.Style = (Style)this.Resources["Controlled"];
                     changing_interval = true;
                     ci_timer.Start();
                 }
@@ -134,7 +146,7 @@ namespace APlayer
                 {
                     PlayerGamePad.Stop();
                     App.Gamepad.Start();
-                    PlayerBorder.Style = (Style)this.Resources["Uncontrolled"];
+                    Player.Style = (Style)this.Resources["Uncontrolled"];
                     changing_interval = true;
                     ci_timer.Start();
                 }
@@ -147,9 +159,17 @@ namespace APlayer
             {
                 if (e.pressed.HasFlag(XInput.Buttons.UP))
                 {
+                    double db = ToDecibel(App.SoundPlayer.OutputGain);
+                    db = Math.Clamp(db + 1, GainMin, GainMax);
+                    App.SoundPlayer.OutputGain = FromDecibel(db);
+                    viewModel.Volume = db;
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.DOWN))
                 {
+                    double db = ToDecibel(App.SoundPlayer.OutputGain);
+                    db = Math.Clamp(db - 1, GainMin, GainMax);
+                    App.SoundPlayer.OutputGain = FromDecibel(db);
+                    viewModel.Volume = db;
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
@@ -171,16 +191,19 @@ namespace APlayer
         {
             var pos = App.SoundPlayer.GetPosition();
             viewModel.PlayingPosition = pos;
+            //なんか AudioFileInputNode.FileCompleted が来ない時がたまにあるので、とりあえずここでチェック
+            if (pos > App.SoundPlayer.GetCurrentDuration())
+                App.SoundPlayer.PlayNext();
 
             while (LeftPeaks.Count > 5)
                 LeftPeaks.TryDequeue(out _);
             while (RightPeaks.Count > 5)
                 RightPeaks.TryDequeue(out _);
-            float l = LeftPeaks.Max();
-            float r = RightPeaks.Max();
+            double l = ToDecibel(LeftPeaks.Max());
+            double r = ToDecibel(RightPeaks.Max());
 
-            viewModel.LeftPeak = (float)(ToDecibel(l) + 80) * 2;
-            viewModel.RightPeak = (float)(ToDecibel(r) + 80) * 2;
+            viewModel.LeftPeak = (float)(Math.Clamp(l, -80, 0) + 80) * 1.5f;
+            viewModel.RightPeak = (float)(Math.Clamp(r, -80, 0) + 80) * 1.5f;
         }
 
         private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<Windows.Media.Audio.AudioFileInputNode> list, int index) e)
@@ -294,6 +317,13 @@ namespace APlayer
             App.SoundPlayer.Seek(TimeSpan.FromSeconds(e.NewValue));
         }
 
+        private void VolumeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (e.NewValue == viewModel.Volume)
+                return;
+            App.SoundPlayer.OutputGain = FromDecibel(e.NewValue);
+            viewModel.Volume = e.NewValue;
+        }
     }
 
     class PlayerViewModel : INotifyPropertyChanged
@@ -354,10 +384,24 @@ namespace APlayer
         }
 
         public string PlayingPositionString
-            { get => playingPosition.ToString("hh\\:mm\\:ss\\.ff"); }
+            { get => string.Format("{0}",(int)playingPosition.TotalMinutes) + playingPosition.ToString(@"\:ss\.ff"); }
 
         public string DurationString
-        { get => duration.ToString("hh\\:mm\\:ss\\.ff"); }
+        { get => ((int)duration.TotalMinutes).ToString("0") + duration.ToString(@"\:ss\.ff"); }
+
+
+        private double volume;
+        public double Volume
+        {
+            get => volume;
+            set
+            {
+                volume = value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(VolumeNumber));
+            }
+        }
+        public string VolumeNumber { get => volume.ToString("F2"); }
 
 
         private float leftPeak;
