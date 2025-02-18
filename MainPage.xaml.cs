@@ -15,6 +15,8 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.Storage;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Windows.UI;
+using System.Collections.Concurrent;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -33,22 +35,152 @@ namespace APlayer
 
         PlayerViewModel viewModel { get; set; } = new PlayerViewModel();
 
+        private ConcurrentQueue<float> LeftPeaks = new([0]);
+        private ConcurrentQueue<float> RightPeaks = new([0]);
+
+        readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
+        bool changing_interval = false;
+        readonly DispatcherTimer ci_timer = new() { Interval = TimeSpan.FromSeconds(0.5) };
+
         public MainPage()
         {
+            ci_timer.Tick += (s, o) => { changing_interval = false;ci_timer.Stop(); };
             this.InitializeComponent();
-
-            App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
-            App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
 
             Timer.Interval = TimeSpan.FromMicroseconds(100);
             Timer.Tick += Timer_Tick;
             Timer.Start();
         }
 
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            var param = e.Parameter as SavedFolder;
+            if (param != null)
+            {
+                rootFolderPath = param.Path;
+            }
+        }
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            rootFolder = await StorageFolder.GetFolderFromPathAsync(rootFolderPath);
+            MainFrame.Navigate(typeof(FilerPage), (rootFolder, Frame));
+
+            App.Gamepad.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;
+            PlayerGamePad.ButtonsChanged += PlayerGamePad_ButtonsChanged; ;
+            PlayerGamePad.TriggerButtonsChanged += PlayerGamePad_TriggerButtonsChanged;
+
+            App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
+            App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
+            App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
+
+            App.SoundPlayer.PeakReported += SoundPlayer_PeakReported;
+        }
+
+        private void SoundPlayer_PeakReported(object? sender, (float left, float right) e)
+        {
+            LeftPeaks.Enqueue(e.left);
+            RightPeaks.Enqueue(e.right);
+//            this.DispatcherQueue.TryEnqueue(() =>
+//            {
+//                viewModel.LeftPeak = (float)(ToDecibel(e.left) + 80) * 2;
+//                viewModel.RightPeak = (float)(ToDecibel(e.right) + 80) * 2;
+//                viewModel.LeftPeak = (float)(e.left) * 160;
+//                viewModel.RightPeak = (float)(e.right) * 160;
+//            });
+        }
+        public static double ToDecibel(double linear)
+        {
+            double d = Math.Log10(linear) * 20;
+            return Math.Clamp(d, -80, 0);
+        }
+
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            App.SoundPlayer.Stop();
+            App.SoundPlayer.ResetPlayList();
+
+            App.Gamepad.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
+            PlayerGamePad.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
+            PlayerGamePad.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
+
+            App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
+            App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
+            App.SoundPlayer.PeakReported -= SoundPlayer_PeakReported;
+        }
+
+
+
+        private void Gamepad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left) && !changing_interval)
+                {
+                    App.Gamepad.Stop();
+                    PlayerGamePad.Start();
+                    PlayerBorder.Style = (Style)this.Resources["Controlled"];
+                    changing_interval = true;
+                    ci_timer.Start();
+                }
+            });
+        }
+
+        private void PlayerGamePad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left) && !changing_interval)
+                {
+                    PlayerGamePad.Stop();
+                    App.Gamepad.Start();
+                    PlayerBorder.Style = (Style)this.Resources["Uncontrolled"];
+                    changing_interval = true;
+                    ci_timer.Start();
+                }
+            });
+        }
+
+        private void PlayerGamePad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.pressed.HasFlag(XInput.Buttons.UP))
+                {
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
+                {
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
+                {
+                    StepPrev();
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
+                {
+                    StepNext();
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
+                {
+                    PlayPause();
+                }
+            });
+        }
+
+
         private void Timer_Tick(object? sender, object e)
         {
             var pos = App.SoundPlayer.GetPosition();
             viewModel.PlayingPosition = pos;
+
+            while (LeftPeaks.Count > 5)
+                LeftPeaks.TryDequeue(out _);
+            while (RightPeaks.Count > 5)
+                RightPeaks.TryDequeue(out _);
+            float l = LeftPeaks.Max();
+            float r = RightPeaks.Max();
+
+            viewModel.LeftPeak = (float)(ToDecibel(l) + 80) * 2;
+            viewModel.RightPeak = (float)(ToDecibel(r) + 80) * 2;
         }
 
         private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<Windows.Media.Audio.AudioFileInputNode> list, int index) e)
@@ -88,26 +220,18 @@ namespace APlayer
                 }
             });
         }
-
-
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        private void SoundPlayer_StateChanged(object? sender, SoundPlayer.PlayerState e)
         {
-            var param = e.Parameter as SavedFolder;
-            if (param != null)
+            this.DispatcherQueue.TryEnqueue(() =>
             {
-                rootFolderPath = param.Path;
-            }
-        }
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-            rootFolder = await StorageFolder.GetFolderFromPathAsync(rootFolderPath);
-            MainFrame.Navigate(typeof(FilerPage), (rootFolder, Frame));
-        }
-
-        private void Page_Unloaded(object sender, RoutedEventArgs e)
-        {
-            App.SoundPlayer.Stop();
-            App.SoundPlayer.ResetPlayList();
+                viewModel.StateButton = e switch
+                {
+                    SoundPlayer.PlayerState.Playing => Symbol.Pause,
+                    SoundPlayer.PlayerState.Paused => Symbol.Play,
+                    SoundPlayer.PlayerState.Stoped => Symbol.Play,
+                    _ => Symbol.Stop,
+                };
+            });
         }
 
         private void SkipPrev_Click(object sender, RoutedEventArgs e)
@@ -115,6 +239,10 @@ namespace APlayer
             App.SoundPlayer.PlayPrevious();
         }
         private void StepPrev_Click(object sender, RoutedEventArgs e)
+        {
+            StepPrev();
+        }
+        private static void StepPrev()
         {
             var pos = App.SoundPlayer.GetPosition();
             pos -= TimeSpan.FromSeconds(10);
@@ -125,23 +253,23 @@ namespace APlayer
 
         private void PlayPause_Click(object sender, RoutedEventArgs e)
         {
+            PlayPause();
+        }
+        private void PlayPause()
+        {
             if (App.SoundPlayer.State == SoundPlayer.PlayerState.Playing)
                 App.SoundPlayer.Pause();
             else if (App.SoundPlayer.State != SoundPlayer.PlayerState.Null)
             {
                 App.SoundPlayer.Play();
             }
-            if (App.SoundPlayer.State == SoundPlayer.PlayerState.Playing)
-            {
-                PlayPause.Content = "⏸";
-            }
-            else
-            {
-                PlayPause.Content = "⏯";//▶
-            }
         }
 
         private void StepNext_Click(object sender, RoutedEventArgs e)
+        {
+            StepNext();
+        }
+        private void StepNext()
         {
             var d = App.SoundPlayer.GetCurrentDuration();
             if (d == null)
@@ -188,6 +316,17 @@ namespace APlayer
                 NotifyPropertyChanged();
             }
         }
+        private Symbol stateButton = Symbol.Stop;
+        public Symbol StateButton
+        {
+            get => stateButton;
+            set
+            {
+                stateButton = value;
+                NotifyPropertyChanged();
+            }
+        }
+
 
         private TimeSpan playingPosition;
         public TimeSpan PlayingPosition
@@ -202,6 +341,7 @@ namespace APlayer
         }
 
         private TimeSpan duration;
+
         public TimeSpan Duration
         {
             get => duration;
@@ -219,5 +359,26 @@ namespace APlayer
         public string DurationString
         { get => duration.ToString("hh\\:mm\\:ss\\.ff"); }
 
+
+        private float leftPeak;
+        public float LeftPeak
+        {
+            get => leftPeak;
+            set
+            {
+                leftPeak = value;
+                NotifyPropertyChanged();
+            }
+        }
+        private float rightPeak;
+        public float RightPeak
+        {
+            get => rightPeak;
+            set
+            {
+                rightPeak = value;
+                NotifyPropertyChanged();
+            }
+        }
     }
 }

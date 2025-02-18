@@ -55,6 +55,7 @@ namespace APlayer
             MainWindow.Activate();
 
             await SoundPlayer.Initialize();
+            SoundPlayer.InsertPeakDetector();
         }
 
 //        private Window? m_window;

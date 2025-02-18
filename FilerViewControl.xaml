@@ -16,8 +16,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Image Source="/Assets/IconFolder.svg" Height="32" Margin="0,0,8,0" />
-                <TextBlock Text="{x:Bind Name}" FontSize="16" Grid.Column="1"  VerticalAlignment="Center" />
+                <SymbolIcon Symbol="Folder" Height="32" Margin="0,0,8,0" />
+<!--                <Image Source="/Assets/IconFolder.svg" Height="32" Margin="0,0,8,0" /> -->                <TextBlock Text="{x:Bind Name}" FontSize="16" Grid.Column="1"  VerticalAlignment="Center" />
                 <TextBlock Text="Folder" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
             </Grid>
         </DataTemplate>
@@ -30,7 +30,8 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Image Source="/Assets/IconAudio.svg" Height="32" />
+                <SymbolIcon Symbol="Audio" Height="32" Margin="0,0,8,0" />
+                <!--                <Image Source="/Assets/IconAudio.svg" Height="32" />-->
                 <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
                 <TextBlock Text="{x:Bind Extra,Mode=OneWay}" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
                 <TextBlock Text="{x:Bind Extention}" Grid.Column="3"  VerticalAlignment="Center" TextAlignment="Left" />
@@ -44,6 +45,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <Image Height="128" Source="{x:Bind Item.Path}" Margin="0,2,4,2"/>
                 <TextBlock Text="{x:Bind Name}" FontSize="20"  Grid.Column="1" VerticalAlignment="Center" />
                 <TextBlock Text="{x:Bind Extention}" Grid.Column="2" TextAlignment="Left" VerticalAlignment="Center" />
@@ -58,7 +60,9 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Image Source="/Assets/IconText.svg" Height="32"/>
+                <SymbolIcon Symbol="Document" Height="32" Margin="0,0,8,0" />
+
+                <!--                <Image Source="ms-appx:///Assets/IconText.svg" Height="32"/>-->
                 <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
                 <TextBlock Text="Text File" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
                 <TextBlock Text="{x:Bind Extention}" Grid.Column="3" TextAlignment="Left" VerticalAlignment="Center" />

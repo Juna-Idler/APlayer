@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 using Windows.Media.Audio;
 using Windows.Storage;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Windows.Foundation;
+using Windows.Media;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace APlayer
 {
@@ -12,6 +16,8 @@ namespace APlayer
     {
         public event EventHandler<(IReadOnlyList<AudioFileInputNode> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
+        public event EventHandler<PlayerState>? StateChanged;
+        public event EventHandler<(float left,float right)>? PeakReported;
 
         public AudioGraph? AudioGraph { get; private set; }
         public AudioDeviceOutputNode? DeviceOutputNode { get; private set; }
@@ -31,6 +37,9 @@ namespace APlayer
 
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
+
+        private AudioFrameOutputNode? FrameOutputNode = null;
+
 
         public SoundPlayer()
         {
@@ -82,6 +91,8 @@ namespace APlayer
             }
             if (Playlist.Count == 0)
             {
+                if (State != PlayerState.Empty)
+                    StateChanged?.Invoke(this, PlayerState.Empty);
                 State = PlayerState.Empty;
                 CurrentInputNode = null;
                 PlaylistChanged?.Invoke(this, (Playlist, -1));
@@ -91,6 +102,10 @@ namespace APlayer
                 State = PlayerState.Stoped;
                 int i = Math.Clamp(index, 0, Playlist.Count - 1);
                 CurrentInputNode = Playlist[i];
+                CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
+                if (FrameOutputNode != null)
+                    CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
+                CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
                 PlaylistChanged?.Invoke(this, (Playlist, i));
             }
         }
@@ -108,6 +123,8 @@ namespace APlayer
             }
             Playlist.Clear();
 
+            if (State != PlayerState.Empty)
+                StateChanged?.Invoke(this, PlayerState.Empty);
             State = PlayerState.Empty;
             CurrentInputNode = null;
             PlaylistChanged?.Invoke(this, (Playlist, -1));
@@ -129,9 +146,13 @@ namespace APlayer
             }
             CurrentInputNode.Seek(start_time);
             CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
+            if (FrameOutputNode != null)
+                CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
             CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
             AudioGraph.Start();
             Stopwatch.Start();
+            if (State != PlayerState.Playing)
+                StateChanged?.Invoke(this, PlayerState.Playing);
             State = PlayerState.Playing;
         }
 
@@ -145,6 +166,8 @@ namespace APlayer
                 case PlayerState.Paused:
                     AudioGraph.Start();
                     Stopwatch.Start();
+                    if (State != PlayerState.Playing)
+                        StateChanged?.Invoke(this, PlayerState.Playing);
                     State = PlayerState.Playing;
                     return;
                 case PlayerState.Playing:
@@ -170,8 +193,12 @@ namespace APlayer
             if (CurrentInputNode != null)
             {
                 CurrentInputNode.RemoveOutgoingConnection(DeviceOutputNode);
+                if (FrameOutputNode != null)
+                    CurrentInputNode.RemoveOutgoingConnection(FrameOutputNode);
                 CurrentInputNode.FileCompleted -= CurrentInputNode_FileCompleted;
             }
+            if (State != PlayerState.Stoped)
+                StateChanged?.Invoke(this, PlayerState.Stoped);
             State = PlayerState.Stoped;
             Stopwatch.Reset();
             BaseTime = TimeSpan.Zero;
@@ -184,6 +211,8 @@ namespace APlayer
                 return;
             AudioGraph.Stop();
             Stopwatch.Stop();
+            if (State != PlayerState.Paused)
+                StateChanged?.Invoke(this, PlayerState.Paused);
             State = PlayerState.Paused; 
         }
 
@@ -258,5 +287,76 @@ namespace APlayer
         {
             PlayNext();
         }
+
+        public void InsertPeakDetector()
+        {
+            if (AudioGraph == null) return;
+
+            FrameOutputNode = AudioGraph.CreateFrameOutputNode();
+            if (CurrentInputNode != null)
+                CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
+            AudioGraph.QuantumStarted += AudioGraph_QuantumStarted;
+        }
+        public void RemovePeakDetector()
+        {
+            if (AudioGraph == null) return;
+            if (FrameOutputNode ==  null) return;
+
+            AudioGraph.QuantumStarted -= AudioGraph_QuantumStarted;
+            if (CurrentInputNode != null)
+                CurrentInputNode.RemoveOutgoingConnection(FrameOutputNode);
+            FrameOutputNode.Dispose();
+            FrameOutputNode = null;
+        }
+
+        unsafe private void AudioGraph_QuantumStarted(AudioGraph sender, object args)
+        {
+            if (FrameOutputNode == null)
+                return;
+            var frame = FrameOutputNode.GetFrame();
+            using (AudioBuffer buffer = frame.LockBuffer(AudioBufferAccessMode.Write))
+            using (IMemoryBufferReference reference = buffer.CreateReference())
+            {
+                byte* dataInBytes;
+                uint capacityInBytes;
+                float* dataInFloat;
+
+                // Get the buffer from the AudioFrame
+                ((IMemoryBufferByteAccess)reference).GetBuffer(out dataInBytes, out capacityInBytes);
+
+                dataInFloat = (float*)dataInBytes;
+                uint samples = buffer.Length / (sizeof(float) / sizeof(byte));
+                float left_peak = 0;
+                float right_peak = 0;
+                if (FrameOutputNode.EncodingProperties.ChannelCount == 2)
+                {
+                    for (int i = 0; i < samples; i += 2)
+                    {
+                        left_peak = Math.Max(left_peak, dataInFloat[i]);
+                        right_peak = Math.Max(right_peak, dataInFloat[i + 1]);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < samples; i++)
+                    {
+                        left_peak = Math.Max(left_peak, dataInFloat[i]);
+                    }
+                }
+                PeakReported?.Invoke(this, (left_peak, right_peak));
+            }
+        }
+
+
     }
+
+
+    [GeneratedComInterface]
+    [Guid("5B0D3235-4DBA-4D44-865E-8F1D0E4FD04D")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    unsafe partial interface IMemoryBufferByteAccess
+    {
+        void GetBuffer(out byte* buffer, out uint capacity);
+    }
+
 }

@@ -23,7 +23,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
         </Grid.ColumnDefinitions>
-        <ListView x:Name="FoldersView" Background="AliceBlue"
+        <ListView x:Name="FoldersView"
                   HorizontalAlignment="Stretch"
                   CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
                   SelectionChanged="FoldersView_SelectionChanged">
