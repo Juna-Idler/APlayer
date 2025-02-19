@@ -9,30 +9,103 @@ using System.Runtime.InteropServices;
 using Windows.Foundation;
 using Windows.Media;
 using System.Runtime.InteropServices.Marshalling;
+using static APlayer.ISoundPlayer;
+using Windows.Media.Playlists;
 
 namespace APlayer
 {
-    public class SoundPlayer
+    public interface ISoundPlayer
     {
-        public event EventHandler<(IReadOnlyList<AudioFileInputNode> list, int index)>? PlaylistChanged;
+        public interface ITrack
+        {
+            string Name { get; }
+            string Path { get; }
+            TimeSpan Duration { get; }
+        }
+        public enum PlayerState { Null, Empty, Stoped, Playing, Paused }
+
+
+        public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
         public event EventHandler<PlayerState>? StateChanged;
-        public event EventHandler<(float left,float right)>? PeakReported;
+        public event EventHandler<float[]>? FrameReported;
 
-        public AudioGraph? AudioGraph { get; private set; }
-        public AudioDeviceOutputNode? DeviceOutputNode { get; private set; }
+        public uint ChannelCount { get; }
+        public PlayerState State { get; }
+        public ITrack? CurrentTrack { get; }
+        public IReadOnlyList<ITrack> Playlist { get; }
+        public void InsertPlaylist(int index, ITrack track);
+        public void RemovePlaylist(ITrack track);
+        public void RemoveAtPlaylist(int index);
 
-        public enum PlayerState { Null, Empty, Stoped, Playing, Paused }
+        public int CurrentIndex { get; }
+
+        public double OutputGain { get; set; }
+
+        public Task SetPlaylist(IEnumerable<IStorageFile> list, int index = 0);
+        public void ResetPlayList();
+
+        public void Start(TimeSpan start_time);
+        public void Play();
+        public void Stop();
+        public void Pause();
+        public void Seek(TimeSpan time);
+        public TimeSpan GetPosition();
+
+        public void PlayNext();
+        public void PlayPrevious();
+        public void PlayIndex(int index);
+    }
+
+    public class SoundPlayer : ISoundPlayer
+    {
+        public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
+        public event EventHandler<int>? CurrentIndexChanged;
+        public event EventHandler<PlayerState>? StateChanged;
+        public event EventHandler<float[]>? FrameReported;
+
+        private class Track(AudioFileInputNode fileInputNode) : ITrack
+        {
+            public AudioFileInputNode FileInputNode { get; set; } = fileInputNode;
+
+            public string Name { get => FileInputNode.SourceFile.Name; }
+            public string Path { get => FileInputNode.SourceFile.Path; }
+
+            public TimeSpan Duration { get => FileInputNode.Duration; }
+        }
+
+        private AudioGraph? AudioGraph { get; set; }
+        private AudioDeviceOutputNode? DeviceOutputNode { get; set; }
+
+        public uint ChannelCount => (AudioGraph == null) ? 0 : AudioGraph.EncodingProperties.ChannelCount;
+
 
         public PlayerState State { get; private set; } = PlayerState.Null;
 
-        public AudioFileInputNode? CurrentInputNode { get; private set; } = null;
+        private Track? currentTrack = null;
+        public ITrack? CurrentTrack { get => currentTrack; }
 
-        public List<AudioFileInputNode> Playlist { get; private set; } = [];
+        private List<Track> playlist = [];
+        public IReadOnlyList<ITrack> Playlist { get => playlist; }
+
+        public void InsertPlaylist(int index, ITrack track)
+        {
+            if (track is Track t)
+                playlist.Insert(index, t);
+        }
+        public void RemovePlaylist(ITrack track)
+        {
+            if (track is Track t)
+                playlist.Remove(t);
+        }
+        public void RemoveAtPlaylist(int index)
+        {
+            playlist.RemoveAt(index);
+        }
 
         public int CurrentIndex
         {
-            get => Playlist.FindIndex(item => item == CurrentInputNode);
+            get => playlist.FindIndex(item => item == CurrentTrack);
         }
 
         public double OutputGain
@@ -66,7 +139,15 @@ namespace APlayer
             if (AudioGraph != null)
                 return;
 
+            Windows.Devices.Enumeration.DeviceInformationCollection devices =
+                await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(Windows.Media.Devices.MediaDevice.GetAudioRenderSelector());
+
+
             AudioGraphSettings settings = new(Windows.Media.Render.AudioRenderCategory.Media);
+            settings.QuantumSizeSelectionMode = QuantumSizeSelectionMode.ClosestToDesired;
+            settings.DesiredSamplesPerQuantum = 882;
+            settings.DesiredRenderDeviceAudioProcessing = AudioProcessing.Raw;
+            settings.MaxPlaybackSpeedFactor = 1;
             {
                 var result = await AudioGraph.CreateAsync(settings);
                 if (result.Status != AudioGraphCreationStatus.Success)
@@ -75,6 +156,7 @@ namespace APlayer
                 }
 
                 AudioGraph = result.Graph;
+                Debug.WriteLine(AudioGraph.SamplesPerQuantum);
             }
             {
                 var result = await AudioGraph.CreateDeviceOutputNodeAsync();
@@ -95,18 +177,18 @@ namespace APlayer
             {
                 Stop();
             }
-            foreach (var item in Playlist)
+            foreach (var item in playlist)
             {
-                item.Dispose();
+                item.FileInputNode.Dispose();
             }
-            Playlist.Clear();
+            playlist.Clear();
             foreach (var item in list)
             {
                 var result = await AudioGraph.CreateFileInputNodeAsync(item);
                 if (result.Status == AudioFileNodeCreationStatus.Success)
                 {
                     result.FileInputNode.EndTime = result.FileInputNode.Duration;
-                    Playlist.Add(result.FileInputNode);
+                   playlist.Add(new (result.FileInputNode));
                 }
             }
             if (Playlist.Count == 0)
@@ -114,14 +196,14 @@ namespace APlayer
                 if (State != PlayerState.Empty)
                     StateChanged?.Invoke(this, PlayerState.Empty);
                 State = PlayerState.Empty;
-                CurrentInputNode = null;
+                currentTrack = null;
                 PlaylistChanged?.Invoke(this, (Playlist, -1));
             }
             else
             {
                 State = PlayerState.Stoped;
                 int i = Math.Clamp(index, 0, Playlist.Count - 1);
-                CurrentInputNode = Playlist[i];
+                currentTrack = playlist[i];
                 PlaylistChanged?.Invoke(this, (Playlist, i));
             }
         }
@@ -133,12 +215,12 @@ namespace APlayer
             {
                 Stop();
             }
-            CurrentInputNode = null;
-            foreach (var item in Playlist)
+            currentTrack = null;
+            foreach (var item in playlist)
             {
-                item.Dispose();
+                item.FileInputNode.Dispose();
             }
-            Playlist.Clear();
+            playlist.Clear();
 
             if (State != PlayerState.Empty)
                 StateChanged?.Invoke(this, PlayerState.Empty);
@@ -155,16 +237,16 @@ namespace APlayer
             if (State != PlayerState.Stoped)
                 return;
 
-            if (CurrentInputNode == null)
+            if (currentTrack == null)
             {
-                CurrentInputNode = Playlist.First();
+                currentTrack = playlist.First();
                 CurrentIndexChanged?.Invoke(this, 0);
             }
-            CurrentInputNode.Seek(start_time);
-            CurrentInputNode.AddOutgoingConnection(DeviceOutputNode);
+            currentTrack.FileInputNode.Seek(start_time);
+            currentTrack.FileInputNode.AddOutgoingConnection(DeviceOutputNode);
             if (FrameOutputNode != null)
-                CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
-            CurrentInputNode.FileCompleted += CurrentInputNode_FileCompleted;
+                currentTrack.FileInputNode.AddOutgoingConnection(FrameOutputNode);
+            currentTrack.FileInputNode.FileCompleted += CurrentInputNode_FileCompleted;
             AudioGraph.Start();
             Stopwatch.Start();
             if (State != PlayerState.Playing)
@@ -206,12 +288,12 @@ namespace APlayer
             if (State == PlayerState.Empty || State == PlayerState.Stoped)
                 return;
             AudioGraph.Stop();
-            if (CurrentInputNode != null)
+            if (currentTrack != null)
             {
-                CurrentInputNode.RemoveOutgoingConnection(DeviceOutputNode);
+                currentTrack.FileInputNode.RemoveOutgoingConnection(DeviceOutputNode);
                 if (FrameOutputNode != null)
-                    CurrentInputNode.RemoveOutgoingConnection(FrameOutputNode);
-                CurrentInputNode.FileCompleted -= CurrentInputNode_FileCompleted;
+                    currentTrack.FileInputNode.RemoveOutgoingConnection(FrameOutputNode);
+                currentTrack.FileInputNode.FileCompleted -= CurrentInputNode_FileCompleted;
             }
             if (State != PlayerState.Stoped)
                 StateChanged?.Invoke(this, PlayerState.Stoped);
@@ -234,34 +316,34 @@ namespace APlayer
 
         public void Seek(TimeSpan time)
         {
-            if (CurrentInputNode == null)
+            if (currentTrack == null)
                 return;
-            if (time > CurrentInputNode.Duration)
+            if (time > (currentTrack as ITrack).Duration)
                 return;
-            CurrentInputNode.Stop();
-            CurrentInputNode.Seek(time);
+            currentTrack.FileInputNode.Stop();
+            currentTrack.FileInputNode.Seek(time);
             BaseTime = time;
             Stopwatch.Reset();
             if (State == PlayerState.Playing)
             {
                 Stopwatch.Start();
             }
-            CurrentInputNode.Start();
+            currentTrack.FileInputNode.Start();
         }
         public void PlayNext()
         {
             if (AudioGraph == null || State == PlayerState.Empty)
                 return;
             Stop();
-            int index = Playlist.FindIndex(item => item == CurrentInputNode);
+            int index = playlist.FindIndex(item => item == currentTrack);
             index++;
-            if (index >= Playlist.Count)
+            if (index >= playlist.Count)
             {
-                CurrentInputNode = null;
+                currentTrack = null;
                 CurrentIndexChanged?.Invoke(this, -1);
                 return;
             }
-            CurrentInputNode = Playlist[index];
+            currentTrack = playlist[index];
             Play();
             CurrentIndexChanged?.Invoke(this, index);
         }
@@ -270,11 +352,11 @@ namespace APlayer
             if (AudioGraph == null || State == PlayerState.Empty)
                 return;
             Stop();
-            int index = Playlist.FindIndex(item => item == CurrentInputNode);
+            int index = playlist.FindIndex(item => item == currentTrack);
             index--;
             if (index < 0)
                 return;
-            CurrentInputNode = Playlist[index];
+            currentTrack = playlist[index];
             Play();
             CurrentIndexChanged?.Invoke(this, index);
         }
@@ -283,10 +365,10 @@ namespace APlayer
         {
             if (AudioGraph == null || State == PlayerState.Empty)
                 return;
-            if (index < 0 || index >= Playlist.Count)
+            if (index < 0 || index >= playlist.Count)
                 return;
             Stop();
-            CurrentInputNode = Playlist[index];
+            currentTrack = playlist[index];
             Play();
             CurrentIndexChanged?.Invoke(this, index);
         }
@@ -296,25 +378,23 @@ namespace APlayer
             return Stopwatch.Elapsed + BaseTime;
         }
 
-        public TimeSpan? GetCurrentDuration()
-        {
-            return CurrentInputNode?.Duration;
-        }
-
         private void CurrentInputNode_FileCompleted(AudioFileInputNode sender, object args)
         {
             PlayNext();
         }
 
+        private float[] frame_buffer;
         public void InsertPeakDetector()
         {
             if (AudioGraph == null) return;
             if (FrameOutputNode != null)
                 return;
 
+            frame_buffer = new float[AudioGraph.SamplesPerQuantum * AudioGraph.EncodingProperties.ChannelCount];
+
             FrameOutputNode = AudioGraph.CreateFrameOutputNode();
-            if (CurrentInputNode != null)
-                CurrentInputNode.AddOutgoingConnection(FrameOutputNode);
+            if (currentTrack != null)
+                currentTrack.FileInputNode.AddOutgoingConnection(FrameOutputNode);
             AudioGraph.QuantumStarted += AudioGraph_QuantumStarted;
         }
         public void RemovePeakDetector()
@@ -323,8 +403,8 @@ namespace APlayer
             if (FrameOutputNode ==  null) return;
 
             AudioGraph.QuantumStarted -= AudioGraph_QuantumStarted;
-            if (CurrentInputNode != null)
-                CurrentInputNode.RemoveOutgoingConnection(FrameOutputNode);
+            if (currentTrack != null)
+                currentTrack.FileInputNode.RemoveOutgoingConnection(FrameOutputNode);
             FrameOutputNode.Dispose();
             FrameOutputNode = null;
         }
@@ -339,31 +419,12 @@ namespace APlayer
             {
                 byte* dataInBytes;
                 uint capacityInBytes;
-                float* dataInFloat;
 
                 // Get the buffer from the AudioFrame
                 ((IMemoryBufferByteAccess)reference).GetBuffer(out dataInBytes, out capacityInBytes);
 
-                dataInFloat = (float*)dataInBytes;
-                uint samples = buffer.Length / (sizeof(float) / sizeof(byte));
-                float left_peak = 0;
-                float right_peak = 0;
-                if (FrameOutputNode.EncodingProperties.ChannelCount == 2)
-                {
-                    for (int i = 0; i < samples; i += 2)
-                    {
-                        left_peak = Math.Max(left_peak, dataInFloat[i]);
-                        right_peak = Math.Max(right_peak, dataInFloat[i + 1]);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < samples; i++)
-                    {
-                        left_peak = Math.Max(left_peak, dataInFloat[i]);
-                    }
-                }
-                PeakReported?.Invoke(this, (left_peak, right_peak));
+                System.Runtime.InteropServices.Marshal.Copy((nint)dataInBytes, frame_buffer, 0, (int)(buffer.Length / (sizeof(float) / sizeof(byte))));
+                FrameReported?.Invoke(this, frame_buffer);
             }
         }
 

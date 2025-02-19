@@ -43,7 +43,8 @@ namespace APlayer
 
         public static XInput.EventGenerator Gamepad { get; private set; }= new(0, TimeSpan.FromMilliseconds(16));
 
-        public static SoundPlayer SoundPlayer { get; private set; } = new();
+        private static SoundPlayer soundPlayer { get; set; } = new();
+        public static ISoundPlayer SoundPlayer { get => soundPlayer; }
 
         /// <summary>
         /// Invoked when the application is launched.
@@ -54,8 +55,8 @@ namespace APlayer
             MainWindow = new MainWindow();
             MainWindow.Activate();
 
-            await SoundPlayer.Initialize();
-            SoundPlayer.InsertPeakDetector();
+            await soundPlayer.Initialize();
+//            soundPlayer.InsertPeakDetector();
         }
 
 //        private Window? m_window;

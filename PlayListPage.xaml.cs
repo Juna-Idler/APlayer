@@ -39,12 +39,12 @@ namespace APlayer
                     {
                         var item = e.NewItems?[0] as PlaylistItem;
                         if (item != null)
-                            App.SoundPlayer.Playlist.Insert(e.NewStartingIndex, item.Track);
+                            App.SoundPlayer.InsertPlaylist(e.NewStartingIndex, item.Track);
                     }
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
                     {
-                        App.SoundPlayer.Playlist.RemoveAt(e.OldStartingIndex);
+                        App.SoundPlayer.RemoveAtPlaylist(e.OldStartingIndex);
                     }
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
@@ -60,14 +60,17 @@ namespace APlayer
         {
             base.OnNavigatedTo(e);
             fileList = [];
-            fileListIndex = -1;
+            fileListIndex = 0;
 
             if (e.Parameter != null)
             {
                 var (folder, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
 
-                fileListIndex = App.SoundPlayer.Playlist.FindIndex(item => item.SourceFile == file.Item as StorageFile);
-                if (fileListIndex == -1)
+                for (int i = 0; i < App.SoundPlayer.Playlist.Count; i++) {
+                    if (App.SoundPlayer.Playlist[i].Path == file.Item.Path)
+                        fileListIndex = i;
+                }
+                if (fileListIndex == App.SoundPlayer.Playlist.Count)
                 {
                     fileList = new(folder
                         .Where(item => item.Type == FolderItem.ItemType.Audio)
@@ -171,12 +174,12 @@ namespace APlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public PlaylistItem(AudioFileInputNode track,string title = "")
+        public PlaylistItem(ISoundPlayer.ITrack track,string title = "")
         {
             Track = track;
-            Title = title != "" ? title : track.SourceFile.Name;
+            Title = title != "" ? title : track.Name;
         }
-        public AudioFileInputNode Track { get; private set; }
+        public ISoundPlayer.ITrack Track { get; private set; }
 
         private bool isPlaying;
         public bool IsPlaying
@@ -192,7 +195,5 @@ namespace APlayer
         public string Playing { get => IsPlaying ? "Playing" : ""; }
         public string Title { get; private set; }
         public string Duration { get => Track.Duration.ToString(@"hh\:mm\:ss");}
-        public string Codec { get => Track.EncodingProperties.Subtype; }
-        public uint Bitrate { get => Track.EncodingProperties.Bitrate;}
     }
 }

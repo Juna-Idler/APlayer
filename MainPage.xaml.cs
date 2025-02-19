@@ -71,6 +71,7 @@ namespace APlayer
             rootFolder = await StorageFolder.GetFolderFromPathAsync(rootFolderPath);
             MainFrame.Navigate(typeof(FilerPage), (rootFolder, Frame));
 
+            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
             App.Gamepad.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;
             PlayerGamePad.ButtonsChanged += PlayerGamePad_ButtonsChanged; ;
             PlayerGamePad.TriggerButtonsChanged += PlayerGamePad_TriggerButtonsChanged;
@@ -78,17 +79,17 @@ namespace APlayer
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
-            App.SoundPlayer.PeakReported += SoundPlayer_PeakReported;
+            App.SoundPlayer.FrameReported += SoundPlayer_PeakReported;
 
-            VolumeSlider.Value = App.SoundPlayer.OutputGain;
+            VolumeSlider.Value = ToDecibel(App.SoundPlayer.OutputGain);
         }
-
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
+            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
             App.Gamepad.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
             PlayerGamePad.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
             PlayerGamePad.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
@@ -96,20 +97,38 @@ namespace APlayer
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
-            App.SoundPlayer.PeakReported -= SoundPlayer_PeakReported;
+            App.SoundPlayer.FrameReported -= SoundPlayer_PeakReported;
         }
 
-        private void SoundPlayer_PeakReported(object? sender, (float left, float right) e)
+        private void SoundPlayer_PeakReported(object? sender, float[] e)
         {
-            LeftPeaks.Enqueue(e.left);
-            RightPeaks.Enqueue(e.right);
-//            this.DispatcherQueue.TryEnqueue(() =>
-//            {
-//                viewModel.LeftPeak = (float)(ToDecibel(e.left) + 80) * 2;
-//                viewModel.RightPeak = (float)(ToDecibel(e.right) + 80) * 2;
-//                viewModel.LeftPeak = (float)(e.left) * 160;
-//                viewModel.RightPeak = (float)(e.right) * 160;
-//            });
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+
+                float left_peak = 0;
+                float right_peak = 0;
+                if (App.SoundPlayer.ChannelCount == 2)
+                {
+                    for (int i = 0; i < e.Length; i += 2)
+                    {
+                        left_peak = Math.Max(left_peak, e[i]);
+                        right_peak = Math.Max(right_peak, e[i + 1]);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < e.Length; i++)
+                    {
+                        left_peak = Math.Max(left_peak, e[i]);
+                    }
+                }
+
+
+                LeftPeaks.Enqueue(left_peak);
+                RightPeaks.Enqueue(right_peak);
+                //                viewModel.LeftPeak = (float)(Math.Clamp(e.left, -80, 0) + 80) * 1.5f;
+                //                viewModel.RightPeak = (float)(Math.Clamp(e.right, -80, 0) + 80) * 1.5f;
+            });
         }
         public static double ToDecibel(double linear)
         {
@@ -122,12 +141,11 @@ namespace APlayer
         }
 
 
-
-        private void Gamepad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
+        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left) && !changing_interval)
+                if (e.pressed.HasFlag(XInput.Buttons.BACK) && !changing_interval)
                 {
                     App.Gamepad.Stop();
                     PlayerGamePad.Start();
@@ -138,18 +156,17 @@ namespace APlayer
             });
         }
 
+        private void Gamepad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+            });
+        }
+
         private void PlayerGamePad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left) && !changing_interval)
-                {
-                    PlayerGamePad.Stop();
-                    App.Gamepad.Start();
-                    Player.Style = (Style)this.Resources["Uncontrolled"];
-                    changing_interval = true;
-                    ci_timer.Start();
-                }
             });
         }
 
@@ -183,6 +200,15 @@ namespace APlayer
                 {
                     PlayPause();
                 }
+                if (e.pressed.HasFlag(XInput.Buttons.BACK) && !changing_interval)
+                {
+                    PlayerGamePad.Stop();
+                    App.Gamepad.Start();
+                    Player.Style = (Style)this.Resources["Uncontrolled"];
+                    changing_interval = true;
+                    ci_timer.Start();
+                }
+
             });
         }
 
@@ -192,7 +218,7 @@ namespace APlayer
             var pos = App.SoundPlayer.GetPosition();
             viewModel.PlayingPosition = pos;
             //なんか AudioFileInputNode.FileCompleted が来ない時がたまにあるので、とりあえずここでチェック
-            if (pos > App.SoundPlayer.GetCurrentDuration())
+            if (pos > App.SoundPlayer.CurrentTrack?.Duration)
                 App.SoundPlayer.PlayNext();
 
             while (LeftPeaks.Count > 5)
@@ -206,7 +232,7 @@ namespace APlayer
             viewModel.RightPeak = (float)(Math.Clamp(r, -80, 0) + 80) * 1.5f;
         }
 
-        private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<Windows.Media.Audio.AudioFileInputNode> list, int index) e)
+        private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<ISoundPlayer.ITrack> list, int index) e)
         {
             viewModel.Playlist = e.list;
             viewModel.CurrentPlaylistIndex = e.index;
@@ -218,7 +244,7 @@ namespace APlayer
             }
             else
             {
-                viewModel.PlayingTitle = e.list[e.index].SourceFile.Name;
+                viewModel.PlayingTitle = e.list[e.index].Name;
                 viewModel.PlayingPosition = TimeSpan.Zero;
                 viewModel.Duration = e.list[e.index].Duration;
             }
@@ -237,21 +263,21 @@ namespace APlayer
                 }
                 else
                 {
-                    viewModel.PlayingTitle = viewModel.Playlist[e].SourceFile.Name;
+                    viewModel.PlayingTitle = viewModel.Playlist[e].Name;
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = viewModel.Playlist[e].Duration;
                 }
             });
         }
-        private void SoundPlayer_StateChanged(object? sender, SoundPlayer.PlayerState e)
+        private void SoundPlayer_StateChanged(object? sender, ISoundPlayer.PlayerState e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
                 viewModel.StateButton = e switch
                 {
-                    SoundPlayer.PlayerState.Playing => Symbol.Pause,
-                    SoundPlayer.PlayerState.Paused => Symbol.Play,
-                    SoundPlayer.PlayerState.Stoped => Symbol.Play,
+                    ISoundPlayer.PlayerState.Playing => Symbol.Pause,
+                    ISoundPlayer.PlayerState.Paused => Symbol.Play,
+                    ISoundPlayer.PlayerState.Stoped => Symbol.Play,
                     _ => Symbol.Stop,
                 };
             });
@@ -280,9 +306,9 @@ namespace APlayer
         }
         private void PlayPause()
         {
-            if (App.SoundPlayer.State == SoundPlayer.PlayerState.Playing)
+            if (App.SoundPlayer.State == ISoundPlayer.PlayerState.Playing)
                 App.SoundPlayer.Pause();
-            else if (App.SoundPlayer.State != SoundPlayer.PlayerState.Null)
+            else if (App.SoundPlayer.State != ISoundPlayer.PlayerState.Null)
             {
                 App.SoundPlayer.Play();
             }
@@ -294,7 +320,7 @@ namespace APlayer
         }
         private void StepNext()
         {
-            var d = App.SoundPlayer.GetCurrentDuration();
+            var d = App.SoundPlayer.CurrentTrack?.Duration;
             if (d == null)
                 return;
             var pos = App.SoundPlayer.GetPosition();
@@ -334,7 +360,7 @@ namespace APlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public IReadOnlyList<Windows.Media.Audio.AudioFileInputNode> Playlist { get; set; } = [];
+        public IReadOnlyList<ISoundPlayer.ITrack> Playlist { get; set; } = [];
         public int CurrentPlaylistIndex { get; set; } = 0;
 
         private string playingTitle = string.Empty;

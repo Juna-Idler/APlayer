@@ -102,7 +102,7 @@ namespace APlayer
                 {
                     TextView.Text = await FileIO.ReadTextAsync(File);
                 }
-                catch (Exception exc)
+                catch (Exception ex)
                 {
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                     using (Stream st = (await File.OpenReadAsync()).AsStream())
