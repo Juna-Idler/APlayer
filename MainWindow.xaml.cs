@@ -21,7 +21,6 @@ using System.Text.Json;
 using Microsoft.UI;
 using WinRT.Interop;
 using Windows.ApplicationModel;
-using System.Reflection;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -49,25 +48,6 @@ namespace APlayer
             AppTitleTextBlock.Text = AppInfo.Current.DisplayInfo.DisplayName;
             TitleHeightRow.Height = new GridLength(AppWindow.TitleBar.Height / this.Content.RasterizationScale);
 
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            object theme = localSettings.Values["Theme"];
-            if (theme is not null and int t)
-            {
-                if (Content is FrameworkElement root)
-                    root.RequestedTheme = (ElementTheme)t;
-            }
-            object backdrop = localSettings.Values["Backdrop"];
-            int b = 0;
-            if (backdrop is not null and int)
-                b = (int)backdrop;
-            SystemBackdrop = b switch
-            {
-                0 => new MicaBackdrop(),
-                1 => new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt },
-                2 => new DesktopAcrylicBackdrop(),
-                _ => new MicaBackdrop(),
-            };
-
             Activated += MainWindow_Activated;
 
             MainFrame.Navigate(typeof(FolderSelect));
@@ -78,9 +58,13 @@ namespace APlayer
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
+                AppTitleTextBlock.Foreground =
+                    (SolidColorBrush)App.Current.Resources["WindowCaptionForegroundDisabled"];
             }
             else
             {
+                AppTitleTextBlock.Foreground =
+                    (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
             }
         }
     }

@@ -16,7 +16,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Media.Animation;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
-using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -26,15 +25,16 @@ namespace APlayer
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    /// 
-
-    [JsonSerializable(typeof(ObservableCollection<SavedFolder>))]
-    internal partial class SavedFolderJsonSourceGenerationContext : JsonSerializerContext { }
-
     public sealed partial class FolderSelect : Page
     {
 
         public ObservableCollection<SavedFolder> SavedFolders = [];
+
+        private readonly JsonSerializerOptions options = new()
+        {
+            IgnoreReadOnlyProperties = true,
+            WriteIndented = true
+        };
 
         public FolderSelect()
         {
@@ -45,7 +45,7 @@ namespace APlayer
             object folders = localSettings.Values["SavedFolders"];
             if (folders is not null and string)
             {
-                var f = JsonSerializer.Deserialize<ObservableCollection<SavedFolder>>((string)folders,SavedFolderJsonSourceGenerationContext.Default.ObservableCollectionSavedFolder);
+                var f = JsonSerializer.Deserialize<ObservableCollection<SavedFolder>>((string)folders);
                 if (f != null)
                 {
                     SavedFolders = f;
@@ -149,7 +149,7 @@ namespace APlayer
                 SavedFolders.Add(new SavedFolder() { Name = folder.Name, Path = folder.Path });
                 ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-                var json = JsonSerializer.Serialize(SavedFolders, SavedFolderJsonSourceGenerationContext.Default.ObservableCollectionSavedFolder);
+                var json = JsonSerializer.Serialize(SavedFolders, options);
                 localSettings.Values["SavedFolders"] = json;
 
             }
@@ -230,7 +230,7 @@ namespace APlayer
             OutputDeviceList.SelectedIndex = 0;
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            object device_name = localSettings.Values["OutputDevice"];
+            object device_name = (string)localSettings.Values["OutputDevice"];
             if (device_name is not null and string dn)
             {
                 int index = list.FindIndex(x => x.ToString() == dn);
@@ -244,21 +244,6 @@ namespace APlayer
                 }
             }
             OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
-
-            object theme = localSettings.Values["Theme"];
-            if (theme is not null and int t)
-            {
-                Theme.SelectedIndex = t;
-            }
-            Theme.SelectionChanged += Theme_SelectionChanged;
-
-            object backdrop = localSettings.Values["Backdrop"];
-            if (backdrop is not null and int b)
-            {
-                Backdrop.SelectedIndex = b;
-            }
-            Backdrop.SelectionChanged += Backdrop_SelectionChanged;
-
         }
 
         private async void OutputDeviceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -279,54 +264,8 @@ namespace APlayer
                 }
             }
         }
-
-        private async void DeviceUpdateButton_Click(object sender, RoutedEventArgs e)
-        {
-            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
-            var selected = OutputDeviceList.SelectedItem;
-            var devices = await App.SoundPlayer.GetDevices();
-            List<OutputDevice> list = [new OutputDevice(null)];
-            list.AddRange(devices.Select(x => new OutputDevice(x)));
-            OutputDeviceList.ItemsSource = list;
-
-            int index = list.FindIndex(x => x.ToString() == selected.ToString());
-            if (index == -1)
-            {
-                var result = await App.SoundPlayer.Initialize();
-                OutputDeviceList.SelectedIndex = 0;
-            }
-            else
-                OutputDeviceList.SelectedIndex = index;
-            OutputDeviceList.ItemsSource = list;
-            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
-        }
-
-        private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (App.MainWindow?.Content is FrameworkElement root)
-            {
-                root.RequestedTheme = (ElementTheme)Theme.SelectedIndex;
-                ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-                localSettings.Values["Theme"] = Theme.SelectedIndex;
-            }
-        }
-
-        private void Backdrop_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (App.MainWindow == null)
-                return;
-            App.MainWindow.SystemBackdrop = Backdrop.SelectedIndex switch
-            {
-                0 => new MicaBackdrop(),
-                1 => new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt },
-                2 => new DesktopAcrylicBackdrop(),
-                _ => new MicaBackdrop(),
-            };
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            localSettings.Values["Backdrop"] = Backdrop.SelectedIndex;
-        }
-
     }
+
 
 
     public partial class SavedFolder : INotifyPropertyChanged
@@ -367,7 +306,6 @@ namespace APlayer
             }
         }
 
-        [JsonIgnore]
         public int FontSize
         {
             get
@@ -384,8 +322,6 @@ namespace APlayer
     }
 
 
-
-
     public class OutputDevice(ISoundPlayer.IDevice? device)
     {
         public ISoundPlayer.IDevice? Device { get; set; } = device;
@@ -393,7 +329,7 @@ namespace APlayer
         public override string ToString()
         {
             if (Device == null)
-                return "System Default";
+                return "Default Device";
             return Device.Name;
         }
     }
