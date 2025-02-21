@@ -11,11 +11,23 @@ using Windows.Media;
 using System.Runtime.InteropServices.Marshalling;
 using static APlayer.ISoundPlayer;
 using Windows.Media.Playlists;
+using Windows.Devices.Enumeration;
 
 namespace APlayer
 {
     public interface ISoundPlayer
     {
+        public interface IDevice
+        {
+            string Name { get; }
+        }
+        public Task<IReadOnlyList<IDevice>> GetDevices();
+
+        public Task<bool> Initialize(IDevice? device = null);
+        public void Terminalize();
+
+        public IDevice? OutputDevice { get; }
+
         public interface ITrack
         {
             string Name { get; }
@@ -64,6 +76,19 @@ namespace APlayer
         public event EventHandler<PlayerState>? StateChanged;
         public event EventHandler<float[]>? FrameReported;
 
+        public class Device(DeviceInformation device) : IDevice
+        {
+            public string Name { get; set; } = device.Name;
+            public DeviceInformation DeviceInformation { get; set; } = device;
+        }
+        public async Task<IReadOnlyList<IDevice>> GetDevices()
+        {
+            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(Windows.Media.Devices.MediaDevice.GetAudioRenderSelector());
+            List<Device> result = new(devices.Select(d => new Device(d)));
+            return result;
+        }
+
+
         private class Track(AudioFileInputNode fileInputNode) : ITrack
         {
             public AudioFileInputNode FileInputNode { get; set; } = fileInputNode;
@@ -73,6 +98,8 @@ namespace APlayer
 
             public TimeSpan Duration { get => FileInputNode.Duration; }
         }
+
+        public IDevice? OutputDevice { get; private set; }
 
         private AudioGraph? AudioGraph { get; set; }
         private AudioDeviceOutputNode? DeviceOutputNode { get; set; }
@@ -134,39 +161,51 @@ namespace APlayer
         {
         }
 
-        public async Task Initialize()
+        public async Task<bool> Initialize(IDevice? device = null)
         {
-            if (AudioGraph != null)
-                return;
+            Terminalize();
 
-            Windows.Devices.Enumeration.DeviceInformationCollection devices =
-                await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(Windows.Media.Devices.MediaDevice.GetAudioRenderSelector());
+            OutputDevice = device;
 
-
-            AudioGraphSettings settings = new(Windows.Media.Render.AudioRenderCategory.Media);
-            settings.QuantumSizeSelectionMode = QuantumSizeSelectionMode.ClosestToDesired;
-            settings.DesiredSamplesPerQuantum = 882;
-            settings.DesiredRenderDeviceAudioProcessing = AudioProcessing.Raw;
-            settings.MaxPlaybackSpeedFactor = 1;
+            AudioGraphSettings settings = new(Windows.Media.Render.AudioRenderCategory.Media)
+            {
+                PrimaryRenderDevice = (device as Device)?.DeviceInformation,
+                MaxPlaybackSpeedFactor = 1
+            };
+            //            settings.QuantumSizeSelectionMode = QuantumSizeSelectionMode.ClosestToDesired;
+            //            settings.DesiredSamplesPerQuantum = 882;
+            //            settings.DesiredRenderDeviceAudioProcessing = AudioProcessing.Raw;
             {
                 var result = await AudioGraph.CreateAsync(settings);
                 if (result.Status != AudioGraphCreationStatus.Success)
                 {
-                    throw new Exception();
+                    return false;
                 }
 
                 AudioGraph = result.Graph;
-                Debug.WriteLine(AudioGraph.SamplesPerQuantum);
             }
             {
                 var result = await AudioGraph.CreateDeviceOutputNodeAsync();
                 if (result.Status != AudioDeviceNodeCreationStatus.Success)
                 {
-                    throw new Exception();
+                    Terminalize();
+                    return false;
                 }
                 DeviceOutputNode = result.DeviceOutputNode;
             }
             State = PlayerState.Empty;
+            return true;
+        }
+        public void Terminalize()
+        {
+            ResetPlayList();
+            FrameOutputNode?.Dispose();
+            FrameOutputNode = null;
+            DeviceOutputNode?.Dispose();
+            DeviceOutputNode = null;
+            AudioGraph?.Dispose();
+            AudioGraph = null;
+            OutputDevice = null;
         }
 
         public async Task SetPlaylist(IEnumerable<IStorageFile> list, int index = 0)
@@ -383,7 +422,7 @@ namespace APlayer
             PlayNext();
         }
 
-        private float[] frame_buffer;
+        private float[] frame_buffer = [];
         public void InsertPeakDetector()
         {
             if (AudioGraph == null) return;

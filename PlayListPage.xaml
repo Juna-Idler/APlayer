@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Background="Transparent"
     Loaded="Page_Loaded" Unloaded="Page_Unloaded" NavigationCacheMode="Required" >
 
     <Grid x:Name="Grid">
@@ -35,9 +35,9 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <SymbolIcon Symbol="Play" Visibility="{x:Bind Visibility,Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind Title}" Grid.Column="1"
+                        <TextBlock Text="{x:Bind Title}" Grid.Column="1" FontSize="20"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                        <TextBlock Text="{x:Bind Duration}" Grid.Column="2" Style="{StaticResource MonospacedFont}"
+                        <TextBlock Text="{x:Bind Duration}" Grid.Column="2" FontSize="18" Style="{StaticResource MonospacedFont}"
                                    VerticalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>

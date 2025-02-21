@@ -18,6 +18,9 @@ using Windows.Storage.Pickers;
 using Windows.Storage;
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using Microsoft.UI;
+using WinRT.Interop;
+using Windows.ApplicationModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -35,8 +38,34 @@ namespace APlayer
         {
             this.InitializeComponent();
 
-            MainFrame.Navigate(typeof(FolderSelect));
+            SetTitleBar(AppTitleBar);
+            ExtendsContentIntoTitleBar = true;
 
+            RightPaddingColumn.Width =
+                new GridLength(AppWindow.TitleBar.RightInset / this.Content.RasterizationScale);
+            LeftPaddingColumn.Width =
+                new GridLength(AppWindow.TitleBar.LeftInset / this.Content.RasterizationScale);
+            AppTitleTextBlock.Text = AppInfo.Current.DisplayInfo.DisplayName;
+            TitleHeightRow.Height = new GridLength(AppWindow.TitleBar.Height / this.Content.RasterizationScale);
+
+            Activated += MainWindow_Activated;
+
+            MainFrame.Navigate(typeof(FolderSelect));
+        }
+
+
+        private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (args.WindowActivationState == WindowActivationState.Deactivated)
+            {
+                AppTitleTextBlock.Foreground =
+                    (SolidColorBrush)App.Current.Resources["WindowCaptionForegroundDisabled"];
+            }
+            else
+            {
+                AppTitleTextBlock.Foreground =
+                    (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
+            }
         }
     }
 

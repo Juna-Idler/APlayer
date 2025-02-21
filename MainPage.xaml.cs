@@ -41,13 +41,11 @@ namespace APlayer
         private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
         private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
 
-        readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
-        bool changing_interval = false;
-        readonly DispatcherTimer ci_timer = new() { Interval = TimeSpan.FromSeconds(0.5) };
+        private readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
+        private bool TriggerOn = false;
 
         public MainPage()
         {
-            ci_timer.Tick += (s, o) => { changing_interval = false;ci_timer.Stop(); };
             this.InitializeComponent();
 
             VolumeSlider.Maximum = GainMax;
@@ -143,23 +141,41 @@ namespace APlayer
 
         private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
         {
-            this.DispatcherQueue.TryEnqueue(() =>
+            if (sender is XInput.EventGenerator s)
             {
-                if (e.pressed.HasFlag(XInput.Buttons.BACK) && !changing_interval)
+                this.DispatcherQueue.TryEnqueue(() =>
                 {
-                    App.Gamepad.Stop();
-                    PlayerGamePad.Start();
-                    Player.Style = (Style)this.Resources["Controlled"];
-                    changing_interval = true;
-                    ci_timer.Start();
-                }
-            });
+                    if (e.pressed.HasFlag(XInput.Buttons.BACK))
+                    {
+                        PlayerGamePad.LastState = s.State;
+                        App.Gamepad.Stop();
+                        PlayerGamePad.Start();
+                        Player.Style = (Style)this.Resources["Controlled"];
+                    }
+                    if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
+                    {
+                        if (MainFrame.SourcePageType != typeof(PlaylistPage))
+                        {
+                            MainFrame.Navigate(typeof(PlaylistPage));
+                        }
+                    }
+                });
+            }
         }
 
         private void Gamepad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
+                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
+                {
+                    TriggerOn = true;
+                }
+                if (e.released.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
+                {
+                    TriggerOn = false;
+                }
+
             });
         }
 
@@ -200,13 +216,29 @@ namespace APlayer
                 {
                     PlayPause();
                 }
-                if (e.pressed.HasFlag(XInput.Buttons.BACK) && !changing_interval)
+                if (e.pressed.HasFlag(XInput.Buttons.BACK))
                 {
-                    PlayerGamePad.Stop();
-                    App.Gamepad.Start();
-                    Player.Style = (Style)this.Resources["Uncontrolled"];
-                    changing_interval = true;
-                    ci_timer.Start();
+                    if (sender is XInput.EventGenerator s)
+                    {
+                        App.Gamepad.LastState = s.State;
+                        PlayerGamePad.Stop();
+                        App.Gamepad.Start();
+                        Player.Style = (Style)this.Resources["Uncontrolled"];
+                    }
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
+                {
+                    if (sender is XInput.EventGenerator s)
+                    {
+                        if (MainFrame.SourcePageType != typeof(PlaylistPage))
+                        {
+                            MainFrame.Navigate(typeof(PlaylistPage));
+                            App.Gamepad.LastState = s.State;
+                            PlayerGamePad.Stop();
+                            App.Gamepad.Start();
+                            Player.Style = (Style)this.Resources["Uncontrolled"];
+                        }
+                    }
                 }
 
             });
@@ -350,6 +382,16 @@ namespace APlayer
             App.SoundPlayer.OutputGain = FromDecibel(e.NewValue);
             viewModel.Volume = e.NewValue;
         }
+
+        private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            VolumeSlider.Visibility = Visibility.Visible;
+        }
+
+        private void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            VolumeSlider.Visibility = Visibility.Collapsed;
+        }
     }
 
     class PlayerViewModel : INotifyPropertyChanged
@@ -427,7 +469,7 @@ namespace APlayer
                 NotifyPropertyChanged(nameof(VolumeNumber));
             }
         }
-        public string VolumeNumber { get => volume.ToString("F2"); }
+        public string VolumeNumber { get => volume.ToString("F2") + "dB"; }
 
 
         private float leftPeak;

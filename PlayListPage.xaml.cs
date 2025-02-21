@@ -60,17 +60,21 @@ namespace APlayer
         {
             base.OnNavigatedTo(e);
             fileList = [];
-            fileListIndex = 0;
+            fileListIndex = -1;
 
             if (e.Parameter != null)
             {
                 var (folder, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
 
-                for (int i = 0; i < App.SoundPlayer.Playlist.Count; i++) {
+                for (int i = 0; i < App.SoundPlayer.Playlist.Count; i++)
+                {
                     if (App.SoundPlayer.Playlist[i].Path == file.Item.Path)
+                    {
                         fileListIndex = i;
+                        break;
+                    }
                 }
-                if (fileListIndex == App.SoundPlayer.Playlist.Count)
+                if (fileListIndex == -1)
                 {
                     fileList = new(folder
                         .Where(item => item.Type == FolderItem.ItemType.Audio)
@@ -149,11 +153,12 @@ namespace APlayer
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
-                int index = App.SoundPlayer.CurrentIndex;
                 for (int i = 0; i < List.Count; i++)
                 {
-                    List[i].IsPlaying = i == index;
+                    List[i].IsPlaying = i == e;
                 }
+                if (e >= 0)
+                    PlaylistView.ScrollIntoView(List[e]);
             });
         }
 
@@ -194,6 +199,6 @@ namespace APlayer
         public Visibility Visibility { get => IsPlaying ? Visibility.Visible : Visibility.Collapsed; }
         public string Playing { get => IsPlaying ? "Playing" : ""; }
         public string Title { get; private set; }
-        public string Duration { get => Track.Duration.ToString(@"hh\:mm\:ss");}
+        public string Duration { get => ((int)Track.Duration.TotalMinutes).ToString("0") + Track.Duration.ToString(@"\:ss\.ff"); }
     }
 }

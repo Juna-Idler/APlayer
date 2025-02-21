@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:storage="using:Windows.Storage"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Background="Transparent"
     NavigationCacheMode="Required" Loaded="Page_Loaded" Unloaded="Page_Unloaded" PointerPressed="Page_PointerPressed">
     <Page.Resources>
         <Flyout x:Key="BackToSelector" Placement="BottomEdgeAlignedLeft" Opened="Flyout_Opened" Closed="Flyout_Closed" LightDismissOverlayMode="On">

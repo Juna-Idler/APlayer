@@ -8,8 +8,26 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="APlayer">
-    <Frame x:Name="MainFrame" IsNavigationStackEnabled="false">
-    </Frame>
-
-
+    <Window.SystemBackdrop>
+        <!-- <MicaBackdrop Kind="BaseAlt" /> -->
+        <DesktopAcrylicBackdrop/><!--  -->
+    </Window.SystemBackdrop>    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="TitleHeightRow" Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid x:Name="AppTitleBar">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftPaddingColumn" />
+                <ColumnDefinition/>
+                <ColumnDefinition x:Name="RightPaddingColumn" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="AppTitleTextBlock" Grid.Column="1"
+                       Text="App title" Style="{StaticResource CaptionTextBlockStyle}"
+                       VerticalAlignment="Center"
+                       Margin="16,0,0,0" />
+        </Grid>
+        <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1" />
+    </Grid>
 </Window>

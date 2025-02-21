@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Media.Animation;
 using System.Text.Json.Serialization;
+using System.Collections.Generic;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -42,7 +43,7 @@ namespace APlayer
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
             object folders = localSettings.Values["SavedFolders"];
-            if (folders != null && folders is string)
+            if (folders is not null and string)
             {
                 var f = JsonSerializer.Deserialize<ObservableCollection<SavedFolder>>((string)folders);
                 if (f != null)
@@ -55,6 +56,7 @@ namespace APlayer
             SavedFolders.CollectionChanged += SavedFolders_CollectionChanged;
 
             FoldersView.SelectedIndex = 0;
+
         }
 
         private void SavedFolders_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -131,15 +133,11 @@ namespace APlayer
 
         private async void PickFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            //disable the button to avoid double-clicking
             var senderButton = sender as Button;
             if (senderButton != null)
             {
                 senderButton.IsEnabled = false;
             }
-
-            // Clear previous returned file name, if it exists, between iterations of this scenario
-            PickFolderOutputTextBlock.Text = "";
 
             if (App.MainWindow == null)
                 throw new InvalidDataException();
@@ -155,7 +153,6 @@ namespace APlayer
                 localSettings.Values["SavedFolders"] = json;
 
             }
-            //re-enable the button
             if (senderButton != null)
             {
                 senderButton.IsEnabled = true;
@@ -223,6 +220,50 @@ namespace APlayer
                 }
             }
         }
+
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            var devices = await App.SoundPlayer.GetDevices();
+            List<OutputDevice> list = [new OutputDevice(null)];
+            list.AddRange(devices.Select(x => new OutputDevice(x)));
+            OutputDeviceList.ItemsSource = list;
+            OutputDeviceList.SelectedIndex = 0;
+
+            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            object device_name = (string)localSettings.Values["OutputDevice"];
+            if (device_name is not null and string dn)
+            {
+                int index = list.FindIndex(x => x.ToString() == dn);
+                if (index >= 0)
+                {
+                    var result = await App.SoundPlayer.Initialize(list[index].Device);
+                    if (result)
+                    {
+                        OutputDeviceList.SelectedIndex = index;
+                    }
+                }
+            }
+            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+        }
+
+        private async void OutputDeviceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (OutputDeviceList.SelectedItem is OutputDevice od)
+            {
+                if (App.SoundPlayer.OutputDevice == od.Device)
+                    return;
+                var result = await App.SoundPlayer.Initialize(od.Device);
+                if (!result)
+                {
+                    //Ž¸”s‚µ‚½
+                }
+                else
+                {
+                    ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+                    localSettings.Values["OutputDevice"] = od.ToString();
+                }
+            }
+        }
     }
 
 
@@ -281,5 +322,15 @@ namespace APlayer
     }
 
 
+    public class OutputDevice(ISoundPlayer.IDevice? device)
+    {
+        public ISoundPlayer.IDevice? Device { get; set; } = device;
 
+        public override string ToString()
+        {
+            if (Device == null)
+                return "Default Device";
+            return Device.Name;
+        }
+    }
 }

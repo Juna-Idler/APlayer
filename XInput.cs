@@ -73,29 +73,30 @@ namespace APlayer
 
             private readonly System.Timers.Timer timer;
 
+            public STATE State;
+            public STATE LastState;
+
             public EventGenerator(uint dwUserIndex,TimeSpan interval)
             {
                 UserIndex = dwUserIndex;
                 timer = new System.Timers.Timer(interval.TotalMilliseconds);
-                STATE state = new();
-                STATE last_state = new();
                 TriggerButtons last_trigger_button_state = 0;
                 timer.Elapsed += (sender, e) =>
                 {
-                    XInputGetState(UserIndex, ref state);
+                    XInputGetState(UserIndex, ref State);
 
-                    Buttons button_changed = (state.Gamepad.wButtons ^ last_state.Gamepad.wButtons);
+                    Buttons button_changed = (State.Gamepad.wButtons ^ LastState.Gamepad.wButtons);
                     if (button_changed != 0)
                     {
-                        Buttons pressed = button_changed & state.Gamepad.wButtons;
-                        Buttons rereased = button_changed & last_state.Gamepad.wButtons;
+                        Buttons pressed = button_changed & State.Gamepad.wButtons;
+                        Buttons rereased = button_changed & LastState.Gamepad.wButtons;
                         ButtonsChanged?.Invoke(this, (pressed,rereased));
                     }
-                    if ((last_state.Gamepad.bLeftTrigger != state.Gamepad.bLeftTrigger) ||
-                        (last_state.Gamepad.bRightTrigger != state.Gamepad.bRightTrigger))
+                    if ((LastState.Gamepad.bLeftTrigger != State.Gamepad.bLeftTrigger) ||
+                        (LastState.Gamepad.bRightTrigger != State.Gamepad.bRightTrigger))
                     {
-                        bool left_on = state.Gamepad.bLeftTrigger > TriggerButtonThreshold;
-                        bool right_on = state.Gamepad.bRightTrigger > TriggerButtonThreshold;
+                        bool left_on = State.Gamepad.bLeftTrigger > TriggerButtonThreshold;
+                        bool right_on = State.Gamepad.bRightTrigger > TriggerButtonThreshold;
                         TriggerButtons trigger_button_state = (left_on ? TriggerButtons.Left : 0) | (right_on ? TriggerButtons.Right : 0);
                         TriggerButtons trigger_changed = trigger_button_state ^ last_trigger_button_state;
                         if (trigger_changed != 0)
@@ -106,7 +107,7 @@ namespace APlayer
                         }
                     }
 
-                    last_state = state;
+                    LastState = State;
                 };
 
             }
