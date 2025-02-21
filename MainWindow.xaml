@@ -8,10 +8,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="APlayer">
-    <Window.SystemBackdrop>
-        <!-- <MicaBackdrop Kind="BaseAlt" /> -->
-        <DesktopAcrylicBackdrop/><!--  -->
-    </Window.SystemBackdrop>    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition x:Name="TitleHeightRow" Height="Auto"/>

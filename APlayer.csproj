@@ -13,6 +13,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="MainFrame\**" />
+    <EmbeddedResource Remove="MainFrame\**" />
+    <None Remove="MainFrame\**" />
+    <Page Remove="MainFrame\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="FilerPage.xaml" />
     <None Remove="FilerViewControl.xaml" />
     <None Remove="FolderSelect.xaml" />
@@ -104,7 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
-    <Folder Include="MainFrame\" />
   </ItemGroup>
 
   <!--
@@ -120,8 +125,12 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
+    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">True</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PRIResource Remove="MainFrame\**" />
+  </ItemGroup>
 </Project>

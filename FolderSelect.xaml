@@ -38,29 +38,45 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                         <TextBlock Text="{x:Bind Name,Mode=OneWay}" Grid.Column="1"
-                                   VerticalAlignment="Center"
+                                   VerticalAlignment="Center" TextWrapping="Wrap"
                                    FontSize="{x:Bind FontSize,Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind Path,Mode=OneTime}" Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind Path,Mode=OneTime}" Grid.Column="2"
+                               VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind Path,Mode=OneTime}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                 </Grid>
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Grid VerticalAlignment="Stretch" Grid.Row="1">
+        <Grid Grid.Row="1" ColumnSpacing="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="0"
+            <Button Grid.Column="0" VerticalAlignment="Center" Click="DeviceUpdateButton_Click">Update</Button>
+            <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" />
+            <ComboBox x:Name="Theme" Grid.Column="2" VerticalAlignment="Center" SelectedIndex="0" >
+                <x:String>Default</x:String>
+                <x:String>Light</x:String>
+                <x:String>Dark</x:String>
+            </ComboBox>
+            
+            <ComboBox x:Name="Backdrop" Grid.Column="3" VerticalAlignment="Center" SelectedIndex="0" >
+                <x:String>Mica</x:String>
+                <x:String>Mica Alt</x:String>
+                <x:String>Acrylic</x:String>
+            </ComboBox>
+            
+            <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="5"
                     Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="10" />
-            <ComboBox x:Name="OutputDeviceList" Grid.Column="2" VerticalAlignment="Center" ></ComboBox>
-            <Button Grid.Column="3" VerticalAlignment="Center">Update</Button>
         </Grid>
 
     </Grid>
