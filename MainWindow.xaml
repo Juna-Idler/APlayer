@@ -8,10 +8,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="APlayer">
-    <Window.SystemBackdrop>
-        <!-- <MicaBackdrop Kind="BaseAlt" /> -->
-        <DesktopAcrylicBackdrop/><!--  -->
-    </Window.SystemBackdrop>    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition x:Name="TitleHeightRow" Height="Auto"/>
@@ -28,6 +24,6 @@
                        VerticalAlignment="Center"
                        Margin="16,0,0,0" />
         </Grid>
-        <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1" />
+        <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1"  />
     </Grid>
 </Window>

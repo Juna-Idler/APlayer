@@ -32,8 +32,6 @@ namespace APlayer
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-
-
         public MainWindow()
         {
             this.InitializeComponent();
@@ -50,7 +48,7 @@ namespace APlayer
 
             Activated += MainWindow_Activated;
 
-            MainFrame.Navigate(typeof(FolderSelect));
+            MainFrame.Navigate(typeof(StartPage.StartPage));
         }
 
 

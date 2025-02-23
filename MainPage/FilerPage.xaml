@@ -19,7 +19,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Margin="8" FontSize="24">Back to Folder Select</TextBlock>
+                <TextBlock Margin="8" FontSize="24">Back to Start Page</TextBlock>
                 <Button Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="32"
                         Click="ApprovalButton_Click">←</Button>
             </Grid>

@@ -230,11 +230,11 @@ namespace APlayer
             App.Gamepad.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
         }
 
-        private void BackToFolderSelectPage()
+        private void BackToStartPage()
         {
             Terminating = true;
             Flyout.Hide();
-            WindowFrame?.Navigate(typeof(FolderSelect));
+            WindowFrame?.Navigate(typeof(StartPage.StartPage));
         }
 
         private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
@@ -243,7 +243,7 @@ namespace APlayer
             {
                 if (e.pressed.HasFlag(XInput.Buttons.LEFT))
                 {
-                    BackToFolderSelectPage();
+                    BackToStartPage();
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
                 {
@@ -254,7 +254,7 @@ namespace APlayer
 
         private void ApprovalButton_Click(object sender, RoutedEventArgs e)
         {
-            BackToFolderSelectPage();
+            BackToStartPage();
         }
 
         private void Page_PointerPressed(object sender, PointerRoutedEventArgs e)

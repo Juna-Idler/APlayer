@@ -13,13 +13,20 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="MainFrame\**" />
+    <EmbeddedResource Remove="MainFrame\**" />
+    <None Remove="MainFrame\**" />
+    <Page Remove="MainFrame\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="FilerPage.xaml" />
     <None Remove="FilerViewControl.xaml" />
-    <None Remove="FolderSelect.xaml" />
     <None Remove="ImageViewPage.xaml" />
     <None Remove="MainPage.xaml" />
     <None Remove="PdfViewPage.xaml" />
     <None Remove="PlayListPage.xaml" />
+    <None Remove="StartPage\StartPage.xaml" />
+    <None Remove="StartPage\TabFolderListControl.xaml" />
     <None Remove="TextViewPage.xaml" />
   </ItemGroup>
 
@@ -98,13 +105,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="FolderSelect.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Resources\" />
-    <Folder Include="MainFrame\" />
   </ItemGroup>
 
   <!--
@@ -123,5 +124,19 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PRIResource Remove="MainFrame\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="StartPage\TabFolderListControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="StartPage\StartPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

@@ -58,11 +58,8 @@ namespace APlayer
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            var param = e.Parameter as SavedFolder;
-            if (param != null)
-            {
-                rootFolderPath = param.Path;
-            }
+            (string name, string path) = ((string name,string path))(e.Parameter);
+            rootFolderPath = path;
         }
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
