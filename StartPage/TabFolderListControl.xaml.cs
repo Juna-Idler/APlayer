@@ -117,6 +117,7 @@ namespace APlayer.StartPage
                 SelectedIndex = 0;
             App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
         }
+
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
@@ -134,15 +135,33 @@ namespace APlayer.StartPage
                 {
                     if (current.SelectedIndex > 0)
                         current.SelectedIndex--;
+                    else if (current.SelectedIndex == 0)
+                        current.SelectedIndex = current.Folders.Count - 1;
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.DOWN))
                 {
                     if (current.SelectedIndex < current.Folders.Count - 1)
                         current.SelectedIndex++;
+                    else if (current.SelectedIndex > 0)
+                        current.SelectedIndex = 0;
                 }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT) ||
-                            e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT) ||
-                            e.pressed.HasFlag(XInput.Buttons.A))
+                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
+                {
+                    if (SelectedIndex > 0)
+                        SelectedIndex--;
+                    else if (SelectedIndex == 0)
+                        SelectedIndex = TabFolderListItems.Count - 1;
+                }
+                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
+                {
+                    if (SelectedIndex < TabFolderListItems.Count - 1)
+                        SelectedIndex++;
+                    else if (SelectedIndex > 0)
+                        SelectedIndex = 0;
+                }
+
+                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT) ||
+                    e.pressed.HasFlag(XInput.Buttons.A))
                 {
                     if (current.SelectedIndex >= 0)
                     {
@@ -154,6 +173,24 @@ namespace APlayer.StartPage
                 }
             });
         }
+        private void Gamepad_LeftStickButtonsChanged(object? sender, (XInput.EventGenerator.StickButtons pressed, XInput.EventGenerator.StickButtons released) e)
+        {
+            App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
+            {
+                if (e.pressed.HasFlag( XInput.EventGenerator.StickButtons.Left))
+                {
+                    
+                    if (SelectedIndex > 0)
+                        SelectedIndex--;
+                }
+                if (e.pressed.HasFlag(XInput.EventGenerator.StickButtons.Right))
+                {
+                    if (SelectedIndex < TabFolderListItems.Count - 1)
+                        SelectedIndex++;
+                }
+            });
+        }
+
 
         private void RenameButton_Click(object sender, RoutedEventArgs e)
         {

@@ -27,8 +27,12 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" VerticalAlignment="Center" Click="DeviceUpdateButton_Click">Update</Button>
-            <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OutputDeviceList_SelectionChanged" ></ComboBox>
+            <Button Grid.Column="0" VerticalAlignment="Center" Click="DeviceUpdateButton_Click" ToolTipService.ToolTip="Refresh device list">
+                <SymbolIcon Symbol="Refresh" />
+            </Button>
+            <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" FontSize="18"
+                      ToolTipService.ToolTip="Output Device"
+                      SelectionChanged="OutputDeviceList_SelectionChanged" />
             <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="5"
                     Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="10" />
         </Grid>

@@ -144,7 +144,7 @@ namespace APlayer
                 {
                     if (e.pressed.HasFlag(XInput.Buttons.BACK))
                     {
-                        PlayerGamePad.LastState = s.State;
+                        PlayerGamePad.CopyLastStateFrom(s);
                         App.Gamepad.Stop();
                         PlayerGamePad.Start();
                         Player.Style = (Style)this.Resources["Controlled"];
@@ -217,7 +217,7 @@ namespace APlayer
                 {
                     if (sender is XInput.EventGenerator s)
                     {
-                        App.Gamepad.LastState = s.State;
+                        App.Gamepad.CopyLastStateFrom(s);
                         PlayerGamePad.Stop();
                         App.Gamepad.Start();
                         Player.Style = (Style)this.Resources["Uncontrolled"];
@@ -230,7 +230,7 @@ namespace APlayer
                         if (MainFrame.SourcePageType != typeof(PlaylistPage))
                         {
                             MainFrame.Navigate(typeof(PlaylistPage));
-                            App.Gamepad.LastState = s.State;
+                            App.Gamepad.CopyLastStateFrom(s);
                             PlayerGamePad.Stop();
                             App.Gamepad.Start();
                             Player.Style = (Style)this.Resources["Uncontrolled"];
