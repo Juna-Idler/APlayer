@@ -55,6 +55,7 @@ namespace APlayer.StartPage
         }
 
         private Flyout TabHeaderFlyout { get; set; }
+        private Flyout AddTabFlyout { get; set; }
 
 
         public TabFolderListControl()
@@ -63,6 +64,7 @@ namespace APlayer.StartPage
             TabFolderListItems.CollectionChanged += (s, e) => Updated = true;
 
             TabHeaderFlyout = (Flyout)Resources["TabItemHeaderFlyout"];
+            AddTabFlyout = (Flyout)Resources["AddTabFlyout"];
         }
 
         public void AddFolder(StorageFolder folder)
@@ -153,7 +155,6 @@ namespace APlayer.StartPage
             });
         }
 
-
         private void RenameButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement fe)
@@ -170,26 +171,6 @@ namespace APlayer.StartPage
             }
             TabHeaderFlyout.Hide();
         }
-
-        private void TabHeaderFlyout_Opened(object sender, object e)
-        {
-            if (sender is Flyout f)
-            {
-                if (f.Target.DataContext is TabFolderListItem item)
-                {
-                    int index = TabFolderListItems.IndexOf(item);
-                    TabNameText.Text = TabFolderListItems[index].Name;
-                }
-            }
-
-        }
-
-        private void TabView_AddTabButtonClick(TabView sender, object args)
-        {
-            TabFolderListItems.Add(new TabFolderListItem("new_list", []));
-            Updated = true;
-        }
-
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement fe)
@@ -202,6 +183,37 @@ namespace APlayer.StartPage
             }
             TabHeaderFlyout.Hide();
 
+        }
+
+        private void TabHeaderFlyout_Opened(object sender, object e)
+        {
+            if (sender is Flyout f)
+            {
+                if (f.Target.DataContext is TabFolderListItem item)
+                {
+                    int index = TabFolderListItems.IndexOf(item);
+                    TabNameText.Text = TabFolderListItems[index].Name;
+                }
+            }
+        }
+
+        private void TabView_AddTabButtonClick(TabView sender, object args)
+        {
+            TabFolderListItems.Add(new TabFolderListItem("new_list", []));
+            Updated = true;
+            SelectedIndex  = TabFolderListItems.Count - 1;
+            AddTabFlyout.ShowAt(sender);
+        }
+
+        private void AddTabNameText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TabFolderListItems.Last().Name = AddTabNameText.Text;
+            Updated = true;
+        }
+
+        private void AddTabFlyout_Opened(object sender, object e)
+        {
+            AddTabNameText.Text = TabFolderListItems.Last().Name;
         }
     }
 

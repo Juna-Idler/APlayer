@@ -27,18 +27,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" VerticalAlignment="Center">Update</Button>
+            <Button Grid.Column="0" VerticalAlignment="Center" Click="DeviceUpdateButton_Click">Update</Button>
             <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OutputDeviceList_SelectionChanged" ></ComboBox>
-            <ComboBox x:Name="ThemeList" Grid.Column="2" VerticalAlignment="Center" SelectionChanged="ThemeList_SelectionChanged">
-                <x:String>Default</x:String>
-                <x:String>Light</x:String>
-                <x:String>Dark</x:String>
-            </ComboBox>
-            <ComboBox x:Name="BackdropList" Grid.Column="3" VerticalAlignment="Center" SelectionChanged="Backdrop_SelectionChanged">
-                <x:String>Mica</x:String>
-                <x:String>Mica Alt</x:String>
-                <x:String>Acrylic</x:String>
-            </ComboBox>
             <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="5"
                     Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="10" />
         </Grid>

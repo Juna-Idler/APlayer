@@ -21,6 +21,7 @@ using System.Text.Json;
 using Microsoft.UI;
 using WinRT.Interop;
 using Windows.ApplicationModel;
+using Microsoft.UI.Input;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -46,11 +47,39 @@ namespace APlayer
             AppTitleTextBlock.Text = AppInfo.Current.DisplayInfo.DisplayName;
             TitleHeightRow.Height = new GridLength(AppWindow.TitleBar.Height / this.Content.RasterizationScale);
 
-            Activated += MainWindow_Activated;
+            //            Activated += MainWindow_Activated;
+
+            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            var theme = localSettings.Values["Theme"];
+            if (theme is not null and int t)
+            {
+                ThemeList.SelectedIndex = t;
+            }
+            var backdrop = localSettings.Values["Backdrop"];
+            if (backdrop is not null and int b)
+            {
+                BackdropList.SelectedIndex = b;
+            }
 
             MainFrame.Navigate(typeof(StartPage.StartPage));
         }
 
+        private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (ExtendsContentIntoTitleBar == true)
+            {
+                // Set the initial interactive regions.
+                SetRegionsForCustomTitleBar();
+            }
+        }
+        private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ExtendsContentIntoTitleBar == true)
+            {
+                // Update interactive regions if the size of the window changes.
+                SetRegionsForCustomTitleBar();
+            }
+        }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {
@@ -64,6 +93,60 @@ namespace APlayer
                 AppTitleTextBlock.Foreground =
                     (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
             }
+        }
+
+        private void SetRegionsForCustomTitleBar()
+        {
+            // Specify the interactive regions of the title bar.
+
+            double scaleAdjustment = AppTitleBar.XamlRoot.RasterizationScale;
+
+            RightPaddingColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scaleAdjustment);
+            LeftPaddingColumn.Width = new GridLength(AppWindow.TitleBar.LeftInset / scaleAdjustment);
+
+            var transform = SettingButton.TransformToVisual(null);
+            Rect bounds = transform.TransformBounds(new Rect(0, 0,
+                                                             SettingButton.ActualWidth,
+                                                             SettingButton.ActualHeight));
+            var rect = GetRect(bounds, scaleAdjustment);
+            var nonClientInputSrc = InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
+            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, [rect]);
+        }
+        private Windows.Graphics.RectInt32 GetRect(Rect bounds, double scale)
+        {
+            return new Windows.Graphics.RectInt32(
+                _X: (int)Math.Round(bounds.X * scale),
+                _Y: (int)Math.Round(bounds.Y * scale),
+                _Width: (int)Math.Round(bounds.Width * scale),
+                _Height: (int)Math.Round(bounds.Height * scale)
+            );
+        }
+
+        private void ThemeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ((FrameworkElement)Content).RequestedTheme = (ElementTheme)ThemeList.SelectedIndex;
+        }
+
+        private void Backdrop_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SystemBackdrop? backdrop = BackdropList.SelectedIndex switch
+            {
+                0 => new MicaBackdrop(),
+                1 => new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt },
+                2 => new DesktopAcrylicBackdrop(),
+                _ => null,
+            };
+            if (backdrop != null)
+                SystemBackdrop = backdrop;
+        }
+
+        private void Window_Closed(object sender, WindowEventArgs args)
+        {
+            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            if ((int)localSettings.Values["Theme"] != ThemeList.SelectedIndex)
+                localSettings.Values["Theme"] = ThemeList.SelectedIndex;
+            if ((int)localSettings.Values["Backdrop"] != BackdropList.SelectedIndex)
+                localSettings.Values["Backdrop"] = BackdropList.SelectedIndex;
         }
     }
 

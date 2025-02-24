@@ -23,6 +23,7 @@ using Windows.Storage;
 using Microsoft.UI.Xaml.Media.Animation;
 using APlayer;
 using System.Diagnostics;
+using System.Reflection;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -42,7 +43,6 @@ namespace APlayer.StartPage
             this.InitializeComponent();
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-
             object json = localSettings.Values["SavedData"];
             if (json is not null and string j)
             {
@@ -58,17 +58,6 @@ namespace APlayer.StartPage
                         TabFolderListControl.TabFolderListItems.Add(item);
                     }
                 }
-            }
-
-            var theme = localSettings.Values["Theme"];
-            if (theme is not null and int t)
-            {
-                ThemeList.SelectedIndex = t;
-            }
-            var backdrop = localSettings.Values["Backdrop"];
-            if (backdrop is not null and int b)
-            {
-                BackdropList.SelectedIndex = b;
             }
         }
 
@@ -142,28 +131,6 @@ namespace APlayer.StartPage
             }
         }
 
-        private void ThemeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var root = App.MainWindow?.Content as FrameworkElement;
-            if (root != null)
-            {
-                root.RequestedTheme = (ElementTheme)ThemeList.SelectedIndex;
-            }
-        }
-
-        private void Backdrop_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SystemBackdrop? backdrop = BackdropList.SelectedIndex switch
-            {
-                0 => new MicaBackdrop(),
-                1 => new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt },
-                2 => new DesktopAcrylicBackdrop(),
-                _ => null,
-            };
-            if (App.MainWindow != null && backdrop != null)
-                App.MainWindow.SystemBackdrop = backdrop;
-        }
-
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             var devices = await App.SoundPlayer.GetDevices();
@@ -197,12 +164,6 @@ namespace APlayer.StartPage
                 if ((string)localSettings.Values["OutputDevice"] != od.ToString())
                     localSettings.Values["OutputDevice"] = od.ToString();
             }
-
-            if ((int)localSettings.Values["Theme"] != ThemeList.SelectedIndex)
-                localSettings.Values["Theme"] = ThemeList.SelectedIndex;
-            if ((int)localSettings.Values["Backdrop"] != BackdropList.SelectedIndex)
-                localSettings.Values["Backdrop"] = BackdropList.SelectedIndex;
-
             if (TabFolderListControl.Updated)
             {
                 var save_data = new SavedData(TabFolderListControl.TabFolderListItems.Select(
@@ -212,6 +173,31 @@ namespace APlayer.StartPage
                 if ((string)localSettings.Values["SavedData"] != json)
                     localSettings.Values["SavedData"] = json;
             }
+        }
+
+        private async void DeviceUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
+            var device_name = OutputDeviceList.SelectedItem.ToString();
+            var devices = await App.SoundPlayer.GetDevices();
+            List<OutputDevice> list = [new OutputDevice(null)];
+            list.AddRange(devices.Select(x => new OutputDevice(x)));
+            OutputDeviceList.ItemsSource = list;
+            OutputDeviceList.SelectedIndex = 0;
+            if (device_name is not null)
+            {
+                int index = list.FindIndex(x => x.ToString() == device_name);
+                if (index >= 0)
+                {
+                    var result = await App.SoundPlayer.Initialize(list[index].Device);
+                    if (result)
+                    {
+                        OutputDeviceList.SelectedIndex = index;
+                    }
+                }
+            }
+            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+
         }
     }
 

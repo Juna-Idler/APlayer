@@ -7,22 +7,53 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="APlayer">
+    Title="APlayer"
+    Closed="Window_Closed">
     <Grid>
+        <Grid.Resources>
+            <Flyout x:Key="SettingFlyout">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Theme" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="ThemeList" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="ThemeList_SelectionChanged">
+                        <x:String>Default</x:String>
+                        <x:String>Light</x:String>
+                        <x:String>Dark</x:String>
+                    </ComboBox>
+                    <TextBlock Text="Backdrop" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="BackdropList" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="Backdrop_SelectionChanged">
+                        <x:String>Mica</x:String>
+                        <x:String>Mica Alt</x:String>
+                        <x:String>Acrylic</x:String>
+                    </ComboBox>
+                </Grid>
+            </Flyout>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition x:Name="TitleHeightRow" Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid x:Name="AppTitleBar">
+        <Grid x:Name="AppTitleBar" Loaded="AppTitleBar_Loaded" SizeChanged="AppTitleBar_SizeChanged">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="LeftPaddingColumn" />
-                <ColumnDefinition/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition x:Name="RightPaddingColumn" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="AppTitleTextBlock" Grid.Column="1"
                        Text="App title" Style="{StaticResource CaptionTextBlockStyle}"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0" />
+            <Button x:Name="SettingButton" Grid.Column="2" VerticalAlignment="Stretch" Flyout="{StaticResource SettingFlyout}" >
+                <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE713;" FontSize="18"/>
+            </Button>
         </Grid>
         <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1"  />
     </Grid>
