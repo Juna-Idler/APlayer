@@ -9,9 +9,24 @@
     mc:Ignorable="d" Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded">
 
     <UserControl.Resources>
-            <MenuFlyout x:Key="MenuFlyout">
-                <MenuFlyoutItem Text="Delete" Click="MenuFlyoutItem_Delete_Click" />
-            </MenuFlyout>
+
+        <Flyout x:Key="FolderFlyout" Opened="FolderFlyout_Opened">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Row="0" Content="Rename" Click="FolderRenameButton_Click" />
+                <TextBox x:Name="FolderNameText" Grid.Row="0" Grid.Column="1" KeyDown="FolderTextBox_KeyDown" />
+                <Button Grid.Row="1" Content="Delete" Click="FolderDeleteButton_Click"/>
+            </Grid>
+        </Flyout>
+
+
 
         <Flyout x:Key="TabItemHeaderFlyout" Opened="TabHeaderFlyout_Opened">
             <Grid>
@@ -24,7 +39,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Row="0" Content="Rename" Click="RenameButton_Click"/>
-                <TextBox x:Name="TabNameText" Grid.Row="0" Grid.Column="1" />
+                <TextBox x:Name="TabNameText" Grid.Row="0" Grid.Column="1" KeyDown="TabNameText_KeyDown" />
                 <Button Grid.Row="1" Content="Delete" Click="DeleteButton_Click"/>
             </Grid>
         </Flyout>
@@ -38,29 +53,36 @@
     <TabView x:Name="TabView" TabItemsSource="{x:Bind TabFolderListItems}" SelectedIndex="{x:Bind SelectedIndex,Mode=TwoWay}" AddTabButtonClick="TabView_AddTabButtonClick">
         <TabView.TabItemTemplate>
             <DataTemplate x:DataType="local:TabFolderListItem">
-                <TabViewItem IsClosable="False" ContextFlyout="{StaticResource TabItemHeaderFlyout}">
+                <TabViewItem IsClosable="False" ContextFlyout="{StaticResource TabItemHeaderFlyout}"
+                             AllowDrop="True" DragOver="TabViewItem_DragOver" Drop="TabViewItem_Drop" DragEnter="TabViewItem_DragEnter" >
                     <TabViewItem.Header>
                         <TextBlock Text="{x:Bind Name,Mode=OneWay}"/>
                     </TabViewItem.Header>
 
-                    <ListView HorizontalAlignment="Stretch" ItemsSource="{x:Bind Folders}" SelectedIndex="{x:Bind SelectedIndex,Mode=TwoWay}"
-                              CanReorderItems="True" AllowDrop="True" SelectionMode="Single"
-                              SelectionChanged="FoldersView_SelectionChanged">
+                    <ListView HorizontalAlignment="Stretch" ItemsSource="{x:Bind Folders}"
+                              SelectionMode="Single" SelectedIndex="{x:Bind SelectedIndex,Mode=TwoWay}" SelectionChanged="FoldersView_SelectionChanged"
+                              CanReorderItems="True" AllowDrop="True" CanDragItems="True"
+                              DragItemsStarting="ListView_DragItemsStarting" DragItemsCompleted="ListView_DragItemsCompleted"
+                              DragEnter="ListView_DragEnter" DragOver="ListView_DragOver" Drop="ListView_Drop" >
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="local:SavedFolder">
                                 <Border BorderBrush="#888" BorderThickness="1" Margin="0,2" >
-
-                                    <Grid Margin="2" Padding="2" DoubleTapped="Folder_DoubleTapped" ContextFlyout="{StaticResource MenuFlyout}" >
+                                    <Grid Margin="2" Padding="2" DoubleTapped="Folder_DoubleTapped" ContextFlyout="{StaticResource FolderFlyout}" >
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="auto"/>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <TextBlock Text="{x:Bind Name,Mode=OneWay}" Grid.Column="1"
-                                                   VerticalAlignment="Center"
+                                        <TextBlock Text="{x:Bind Name,Mode=OneWay}" Grid.Row="0" Grid.Column="1"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap"
                                                    FontSize="{x:Bind FontSize,Mode=OneWay}" />
-                                        <TextBlock Text="{x:Bind Path,Mode=OneTime}" Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Path,Mode=OneTime}" Grid.Row="1" Grid.Column="1"
+                                                   VerticalAlignment="Center" TextAlignment="Right" TextTrimming="CharacterEllipsis"
+                                                   ToolTipService.ToolTip="{x:Bind Path,Mode=OneTime}" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>

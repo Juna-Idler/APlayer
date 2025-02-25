@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics.Metrics;
 using System.IO;
@@ -54,6 +55,7 @@ namespace APlayer.StartPage
             }
         }
 
+        private Flyout FolderFlyout { get; set; }
         private Flyout TabHeaderFlyout { get; set; }
         private Flyout AddTabFlyout { get; set; }
 
@@ -61,10 +63,33 @@ namespace APlayer.StartPage
         public TabFolderListControl()
         {
             this.InitializeComponent();
-            TabFolderListItems.CollectionChanged += (s, e) => Updated = true;
+            TabFolderListItems.CollectionChanged += (s, e) =>
+            {
+                Updated = true;
+                if (e.NewItems != null)
+                {
+                    foreach (TabFolderListItem item in e.NewItems)
+                    {
+                        item.Folders.CollectionChanged += Folders_CollectionChanged;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (TabFolderListItem item in e.OldItems)
+                    {
+                        item.Folders.CollectionChanged -= Folders_CollectionChanged;
+                    }
+                }
+            };
 
+            FolderFlyout = (Flyout)Resources["FolderFlyout"];
             TabHeaderFlyout = (Flyout)Resources["TabItemHeaderFlyout"];
             AddTabFlyout = (Flyout)Resources["AddTabFlyout"];
+        }
+
+        private void Folders_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            Updated = true;
         }
 
         public void AddFolder(StorageFolder folder)
@@ -96,18 +121,6 @@ namespace APlayer.StartPage
             if (e.RemovedItems.FirstOrDefault() is SavedFolder rem)
             {
                 rem.Selected = false;
-            }
-        }
-
-        private void MenuFlyoutItem_Delete_Click(object sender, RoutedEventArgs e)
-        {
-            if ( sender is MenuFlyoutItem item )
-            {
-                if (item.DataContext is SavedFolder folder)
-                {
-                    TabFolderListItems[TabView.SelectedIndex].Folders.Remove(folder);
-                    Updated = true;
-                }
             }
         }
 
@@ -191,22 +204,39 @@ namespace APlayer.StartPage
             });
         }
 
-
         private void RenameButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement fe)
             {
                 if (fe.DataContext is TabFolderListItem item)
                 {
-                    int index = TabFolderListItems.IndexOf(item);
-                    if (TabFolderListItems[index].Name != TabNameText.Text)
+                    if (item.Name != TabNameText.Text)
                     {
-                        TabFolderListItems[index].Name = TabNameText.Text;
+                        item.Name = TabNameText.Text;
                         Updated = true;
                     }
                 }
             }
             TabHeaderFlyout.Hide();
+        }
+        private void TabNameText_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                if (sender is FrameworkElement fe)
+                {
+                    if (fe.DataContext is TabFolderListItem item)
+                    {
+                        if (item.Name != TabNameText.Text)
+                        {
+                            item.Name = TabNameText.Text;
+                            Updated = true;
+                        }
+                    }
+                }
+                TabHeaderFlyout.Hide();
+            }
+
         }
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
@@ -228,15 +258,15 @@ namespace APlayer.StartPage
             {
                 if (f.Target.DataContext is TabFolderListItem item)
                 {
-                    int index = TabFolderListItems.IndexOf(item);
-                    TabNameText.Text = TabFolderListItems[index].Name;
+                    TabNameText.Text = item.Name;
                 }
             }
         }
 
         private void TabView_AddTabButtonClick(TabView sender, object args)
         {
-            TabFolderListItems.Add(new TabFolderListItem("new_list", []));
+            var tab = new TabFolderListItem("new_list", []);
+            TabFolderListItems.Add(tab);
             Updated = true;
             SelectedIndex  = TabFolderListItems.Count - 1;
             AddTabFlyout.ShowAt(sender);
@@ -252,6 +282,143 @@ namespace APlayer.StartPage
         {
             AddTabNameText.Text = TabFolderListItems.Last().Name;
         }
+
+        private void FolderFlyout_Opened(object sender, object e)
+        {
+            if (sender is Flyout f)
+            {
+                if (f.Target.DataContext is SavedFolder folder)
+                {
+                    FolderNameText.Text = folder.Name;
+                }
+            }
+        }
+        private void FolderRenameButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement fe)
+            {
+                if (fe.DataContext is SavedFolder folder)
+                {
+                    if (folder.Name != FolderNameText.Text)
+                    {
+                        folder.Name = FolderNameText.Text;
+                        Updated = true;
+                    }
+                }
+            }
+            FolderFlyout.Hide();
+        }
+        private void FolderTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                if (sender is FrameworkElement fe)
+                {
+                    if (fe.DataContext is SavedFolder folder)
+                    {
+                        if (folder.Name != FolderNameText.Text)
+                        {
+                            folder.Name = FolderNameText.Text;
+                            Updated = true;
+                        }
+                    }
+                }
+                FolderFlyout.Hide();
+            }
+        }
+
+        private void FolderDeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement fe)
+            {
+                if (fe.DataContext is SavedFolder folder)
+                {
+                    TabFolderListItems[SelectedIndex].Folders.Remove(folder);
+                    Updated = true;
+                }
+            }
+            FolderFlyout.Hide();
+        }
+
+
+
+        private SavedFolder? MoveItem = null;
+        private TabFolderListItem? MoveFrom = null;
+        private void ListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+        {
+            MoveFrom = (sender as FrameworkElement)?.DataContext as TabFolderListItem;
+            if (MoveFrom != null)
+            {
+                e.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+                MoveItem = e.Items.First() as SavedFolder;
+            }
+        }
+
+        private void TabViewItem_DragEnter(object sender, DragEventArgs e)
+        {
+            if (MoveItem != null)
+            {
+                if (sender is FrameworkElement { DataContext: TabFolderListItem target })
+                {
+                    var index =TabFolderListItems.IndexOf(target);
+                    TabView.SelectedIndex = index;
+                    if (target != MoveFrom)
+                        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+                    else
+                        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("Item Enter");
+        }
+
+        private void TabViewItem_DragOver(object sender, DragEventArgs e)
+        {
+            if (MoveItem != null)
+            {
+                e.Handled = true;
+            }
+        }
+        private void TabViewItem_Drop(object sender, DragEventArgs e)
+        {
+            if (MoveItem != null && MoveFrom != null)
+            {
+                e.Handled = true;
+                if ((sender as FrameworkElement)?.DataContext is not TabFolderListItem target)
+                    return;
+                if (target == MoveFrom)
+                    return;
+                MoveFrom.Folders.Remove(MoveItem);
+                target.Folders.Add(MoveItem);
+            }
+        }
+
+        private void ListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+        {
+            MoveItem = null;
+            MoveFrom = null;
+        }
+
+        private void ListView_DragEnter(object sender, DragEventArgs e)
+        {
+            if (MoveItem != null)
+            {
+                var target = (sender as FrameworkElement)?.DataContext as TabFolderListItem;
+                if (MoveFrom != target)
+                {
+                    e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                    e.Handled = true;
+                }
+            }
+        }
+        private void ListView_DragOver(object sender, DragEventArgs e)
+        {
+        }
+
+        private void ListView_Drop(object sender, DragEventArgs e)
+        {
+        }
+
+
     }
 
     public partial class TabFolderListItem(string name, ObservableCollection<SavedFolder> folders) : INotifyPropertyChanged
