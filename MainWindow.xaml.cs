@@ -22,6 +22,7 @@ using Microsoft.UI;
 using WinRT.Interop;
 using Windows.ApplicationModel;
 using Microsoft.UI.Input;
+using Windows.Graphics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -33,9 +34,32 @@ namespace APlayer
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+
+
         public MainWindow()
         {
             this.InitializeComponent();
+
+            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+            var rect = localSettings.Values["WindowPosSize"];
+            if (rect is not null and Rect r)
+            {
+                RectInt32 ir = new((int)r.X, (int)r.Y, (int)r.Width, (int)r.Height);
+                AppWindow.MoveAndResize(ir);
+            }
+
+            var theme = localSettings.Values["Theme"];
+            if (theme is not null and int t)
+            {
+                ThemeList.SelectedIndex = t;
+            }
+            var backdrop = localSettings.Values["Backdrop"];
+            if (backdrop is not null and int b)
+            {
+                BackdropList.SelectedIndex = b;
+            }
+
 
             SetTitleBar(AppTitleBar);
             ExtendsContentIntoTitleBar = true;
@@ -49,17 +73,6 @@ namespace APlayer
 
             //            Activated += MainWindow_Activated;
 
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            var theme = localSettings.Values["Theme"];
-            if (theme is not null and int t)
-            {
-                ThemeList.SelectedIndex = t;
-            }
-            var backdrop = localSettings.Values["Backdrop"];
-            if (backdrop is not null and int b)
-            {
-                BackdropList.SelectedIndex = b;
-            }
 
             MainFrame.Navigate(typeof(StartPage.StartPage));
         }
@@ -147,6 +160,12 @@ namespace APlayer
                 localSettings.Values["Theme"] = ThemeList.SelectedIndex;
             if ((int)localSettings.Values["Backdrop"] != BackdropList.SelectedIndex)
                 localSettings.Values["Backdrop"] = BackdropList.SelectedIndex;
+
+            PointInt32 pos = AppWindow.Position;
+            SizeInt32 size = AppWindow.Size;
+            Rect rect = new(pos.X,pos.Y,size.Width,size.Height);
+            localSettings.Values["WindowPosSize"] = rect;
+
         }
     }
 
