@@ -8,14 +8,14 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="a38c00c6-8c2e-469a-9372-61494b2503b9"
-    Publisher="CN=Juna"
+    Name="Juna.APlayer"
+    Publisher="CN=5A73DF79-BD6A-4AE1-B61C-A55C6BAA944D"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="a38c00c6-8c2e-469a-9372-61494b2503b9" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="9d84b23d-e9c5-4635-845f-4e01f8c92b60" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>APlayer</DisplayName>
+    <DisplayName>A___Player</DisplayName>
     <PublisherDisplayName>Juna</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -34,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="APlayer"
+        DisplayName="A___Player"
         Description="APlayer"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"

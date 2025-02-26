@@ -10,31 +10,26 @@
 
     <UserControl.Resources>
         <DataTemplate x:Key="FolderItemTemplate" x:DataType="local:FolderItem">
-            <Grid DoubleTapped="Item_DoubleTapped">
+            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <SymbolIcon Symbol="Folder" Height="32" Margin="0,0,8,0" />
-<!--                <Image Source="/Assets/IconFolder.svg" Height="32" Margin="0,0,8,0" /> -->                <TextBlock Text="{x:Bind Name}" FontSize="16" Grid.Column="1"  VerticalAlignment="Center" />
-                <TextBlock Text="Folder" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
+                <TextBlock Text="{x:Bind Name}" FontSize="16" TextWrapping="Wrap" Grid.Column="1"  VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="AudioItemTemplate" x:DataType="local:FolderItem">
-            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="2">
+            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <SymbolIcon Symbol="Audio" Height="32" Margin="0,0,8,0" />
-                <!--                <Image Source="/Assets/IconAudio.svg" Height="32" />-->
                 <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
-                <TextBlock Text="{x:Bind Extra,Mode=OneWay}" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
-                <TextBlock Text="{x:Bind Extention}" Grid.Column="3"  VerticalAlignment="Center" TextAlignment="Left" />
+                <TextBlock Text="{x:Bind Extra,Mode=OneWay}" Grid.Column="3" VerticalAlignment="Center" TextAlignment="Right"  Style="{StaticResource MonospacedFont}" />
             </Grid>
         </DataTemplate>
 
@@ -45,10 +40,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <Image Height="128" Source="{x:Bind Item.Path}" Margin="0,2,4,2"/>
-                <TextBlock Text="{x:Bind Name}" FontSize="20"  Grid.Column="1" VerticalAlignment="Center" />
-                <TextBlock Text="{x:Bind Extention}" Grid.Column="2" TextAlignment="Left" VerticalAlignment="Center" />
+                <FontIcon Glyph="&#xe91b;" Height="32" Margin="0,0,8,0" />
+                <TextBlock Text="{x:Bind Name}" FontSize="16"  Grid.Column="1" VerticalAlignment="Center" />
+                <Image Grid.Column="2" Height="128" Source="{x:Bind Item.Path}" Margin="0,2,4,2"/>
             </Grid>
         </DataTemplate>
 
@@ -58,25 +52,37 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <SymbolIcon Symbol="Document" Height="32" Margin="0,0,8,0" />
-
-                <!--                <Image Source="ms-appx:///Assets/IconText.svg" Height="32"/>-->
                 <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
-                <TextBlock Text="Text File" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Left" />
-                <TextBlock Text="{x:Bind Extention}" Grid.Column="3" TextAlignment="Left" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Bind Extention}" Grid.Column="2" TextAlignment="Left" VerticalAlignment="Center" />
             </Grid>
-        </DataTemplate>        
-        
-        <DataTemplate x:Key="UnknownItemTemplate" x:DataType="local:FolderItem">
-            <Grid DoubleTapped="Item_DoubleTapped">
+        </DataTemplate>
+
+        <DataTemplate x:Key="PdfItemTemplate" x:DataType="local:FolderItem">
+            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="2">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{x:Bind Name}" />
-                <TextBlock Text="Unknown File" Grid.Column="1" TextAlignment="Left" />
+                <FontIcon Glyph="&#xea90;" Height="32" Margin="0,0,8,0" />
+                <TextBlock Text="{x:Bind Name}" FontSize="16" VerticalAlignment="Center" Grid.Column="1" />
+                <TextBlock Text="{x:Bind Extention}" Grid.Column="2" TextAlignment="Left" VerticalAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+
+
+        <DataTemplate x:Key="UnknownItemTemplate" x:DataType="local:FolderItem">
+            <Grid DoubleTapped="Item_DoubleTapped">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <SymbolIcon Symbol="Help" Height="32" Margin="0,0,8,0" />
+                <TextBlock Text="{x:Bind Name}" Grid.Column="1" VerticalAlignment="Center"  />
+                <TextBlock Text="Unknown File" Grid.Column="2" VerticalAlignment="Center"  TextAlignment="Left" />
             </Grid>
         </DataTemplate>
 
@@ -86,6 +92,7 @@
             Audio="{StaticResource AudioItemTemplate}"
             Image="{StaticResource ImageItemTemplate}"
             Text="{StaticResource TextItemTemplate}"
+            Pdf="{StaticResource PdfItemTemplate}"
                                               
             Unknown="{StaticResource UnknownItemTemplate}"
          />
@@ -94,7 +101,7 @@
 
 
     <Grid>
-        <ListView x:Name="FolderListView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+        <ListView x:Name="FolderListView"
                   ItemTemplateSelector="{StaticResource FolderItemDataTemplateSelector}" >
 
         </ListView>

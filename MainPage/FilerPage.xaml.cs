@@ -102,21 +102,21 @@ namespace APlayer
                     {
                         Frame.Navigate(typeof(ImageViewPage), e,
                             new SlideNavigationTransitionInfo()
-                            { Effect = SlideNavigationTransitionEffect.FromLeft });
+                            { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
                 case FolderItem.ItemType.Text:
                     {
                         Frame.Navigate(typeof(TextViewPage), e,
                             new SlideNavigationTransitionInfo()
-                            { Effect = SlideNavigationTransitionEffect.FromLeft });
+                            { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
                 case FolderItem.ItemType.Pdf:
                     {
                         Frame.Navigate(typeof(PdfViewPage), e,
                             new SlideNavigationTransitionInfo()
-                            { Effect = SlideNavigationTransitionEffect.FromLeft });
+                            { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
             }

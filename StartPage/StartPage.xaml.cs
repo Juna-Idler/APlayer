@@ -43,10 +43,9 @@ namespace APlayer.StartPage
             this.InitializeComponent();
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            object json = localSettings.Values["SavedData"];
-            if (json is not null and string j)
+            if (localSettings.Values["SavedData"] is string json)
             {
-                var saved_data = JsonSerializer.Deserialize<SavedData>(j, SourceGenerationContext.Default.SavedData);
+                var saved_data = JsonSerializer.Deserialize<SavedData>(json, SourceGenerationContext.Default.SavedData);
                 if (saved_data != null)
                 {
                     var items = saved_data.Groups.Select(
@@ -59,6 +58,11 @@ namespace APlayer.StartPage
                     }
                 }
             }
+            if (TabFolderListControl.TabFolderListItems.Count == 0)
+            {
+                TabFolderListControl.TabFolderListItems.Add(new("First List", []));
+            }
+
         }
 
 
@@ -140,10 +144,9 @@ namespace APlayer.StartPage
             OutputDeviceList.SelectedIndex = 0;
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            object device_name = localSettings.Values["OutputDevice"];
-            if (device_name is not null and string dn)
+            if (localSettings.Values["OutputDevice"] is string device_name)
             {
-                int index = list.FindIndex(x => x.ToString() == dn);
+                int index = list.FindIndex(x => x.ToString() == device_name);
                 if (index >= 0)
                 {
                     var result = await App.SoundPlayer.Initialize(list[index].Device);
@@ -161,8 +164,10 @@ namespace APlayer.StartPage
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
             if (OutputDeviceList.SelectedItem is OutputDevice od)
             {
-                if ((string)localSettings.Values["OutputDevice"] != od.ToString())
+                if (localSettings.Values["OutputDevice"] is not string device_name || device_name != od.ToString())
+                {
                     localSettings.Values["OutputDevice"] = od.ToString();
+                }
             }
             if (TabFolderListControl.Updated)
             {
@@ -170,8 +175,11 @@ namespace APlayer.StartPage
                     item => new SavedData.Group(item.Name, item.Folders.Select(
                         folder => new SavedData.Group.Folder(folder.Name, folder.Path)))));
                 string json = JsonSerializer.Serialize(save_data, SourceGenerationContext.Default.SavedData);
-                if ((string)localSettings.Values["SavedData"] != json)
+
+                if (localSettings.Values["SavedData"] is not string data || data != json)
+                {
                     localSettings.Values["SavedData"] = json;
+                }
             }
         }
 

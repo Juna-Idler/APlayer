@@ -1,22 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Windows.Storage;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Windows.UI;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -422,7 +414,6 @@ namespace APlayer
             }
         }
 
-
         private TimeSpan playingPosition;
         public TimeSpan PlayingPosition
         {
@@ -449,11 +440,14 @@ namespace APlayer
         }
 
         public string PlayingPositionString
-            { get => string.Format("{0}",(int)playingPosition.TotalMinutes) + playingPosition.ToString(@"\:ss\.ff"); }
+        {
+            get => playingPosition.TotalMinutes.ToString("F0") + playingPosition.ToString(@"\:ss\.ff");
+        }
 
         public string DurationString
-        { get => ((int)duration.TotalMinutes).ToString("0") + duration.ToString(@"\:ss\.ff"); }
-
+        {
+            get => duration.TotalMinutes.ToString("F0") + duration.ToString(@"\:ss\.ff");
+        }
 
         private double volume;
         public double Volume

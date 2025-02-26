@@ -42,24 +42,31 @@ namespace APlayer
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-            var rect = localSettings.Values["WindowPosSize"];
-            if (rect is not null and Rect r)
+            var rect = localSettings.Values["WindowPosSize"] as Rect?;
+            if (rect is Rect r)
             {
                 RectInt32 ir = new((int)r.X, (int)r.Y, (int)r.Width, (int)r.Height);
                 AppWindow.MoveAndResize(ir);
             }
 
-            var theme = localSettings.Values["Theme"];
-            if (theme is not null and int t)
+            var theme = localSettings.Values["Theme"] as int?;
+            if (theme is int t)
             {
                 ThemeList.SelectedIndex = t;
             }
-            var backdrop = localSettings.Values["Backdrop"];
-            if (backdrop is not null and int b)
+            else
+            {
+                ThemeList.SelectedIndex = 0;
+            }
+            var backdrop = localSettings.Values["Backdrop"] as int?;
+            if (backdrop is int b)
             {
                 BackdropList.SelectedIndex = b;
             }
-
+            else
+            {
+                BackdropList.SelectedIndex = 0;
+            }
 
             SetTitleBar(AppTitleBar);
             ExtendsContentIntoTitleBar = true;
@@ -156,16 +163,26 @@ namespace APlayer
         private void Window_Closed(object sender, WindowEventArgs args)
         {
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            if ((int)localSettings.Values["Theme"] != ThemeList.SelectedIndex)
+
+            var theme = localSettings.Values["Theme"] as int?;
+            if (theme == null || theme != ThemeList.SelectedIndex)
+            {
                 localSettings.Values["Theme"] = ThemeList.SelectedIndex;
-            if ((int)localSettings.Values["Backdrop"] != BackdropList.SelectedIndex)
+            }
+            var backdrop = localSettings.Values["Backdrop"] as int?;
+            if (backdrop == null || backdrop != BackdropList.SelectedIndex)
+            {
                 localSettings.Values["Backdrop"] = BackdropList.SelectedIndex;
+            }
 
             PointInt32 pos = AppWindow.Position;
             SizeInt32 size = AppWindow.Size;
             Rect rect = new(pos.X,pos.Y,size.Width,size.Height);
-            localSettings.Values["WindowPosSize"] = rect;
-
+            var old_rect = localSettings.Values["WindowPosSize"] as Rect?;
+            if (old_rect == null || old_rect != rect)
+            {
+                localSettings.Values["WindowPosSize"] = rect;
+            }
         }
     }
 

@@ -1,26 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using static APlayer.FilerPage;
-using Microsoft.UI.Xaml.Media.Animation;
-using Windows.Storage;
-using Windows.Media.Core;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.Storage.Streams;
+using System.Threading.Tasks;
+using Windows.Media.Core;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -214,9 +202,13 @@ namespace APlayer
                         var media = MediaSource.CreateFromStorageFile((StorageFile)Item);
                         await media.OpenAsync();
                         if (media.Duration == null)
-                            Extra = "XX:XX:XX";
+                            Extra = "XX:XX";
                         else
-                            Extra = media.Duration.Value.ToString(@"hh\:mm\:ss");
+                        {
+                            TimeSpan d = media.Duration.Value;
+                            Extra = d.TotalMinutes.ToString("F0") + ":" +  d.ToString(@"ss");
+
+                        }
                         NotifyPropertyChanged(nameof(Extra));
                     }
                     break;
@@ -225,6 +217,8 @@ namespace APlayer
                     }
                     break;
                 case ItemType.Text:
+                    break;
+                case ItemType.Pdf:
                     break;
                 default:
                     break;
@@ -238,6 +232,7 @@ namespace APlayer
         public DataTemplate Audio { get; set; } = new();
         public DataTemplate Image { get; set; } = new();
         public DataTemplate Text { get; set; } = new();
+        public DataTemplate Pdf { get; set; } = new();
         public DataTemplate Unknown { get; set; } = new();
 
 
@@ -254,6 +249,8 @@ namespace APlayer
                     return Image;
                 case FolderItem.ItemType.Text:
                     return Text;
+                case FolderItem.ItemType.Pdf:
+                    return Pdf;
                 default:
                     return Unknown;
             }
