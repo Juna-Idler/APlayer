@@ -206,7 +206,7 @@ namespace APlayer
                         else
                         {
                             TimeSpan d = media.Duration.Value;
-                            Extra = d.TotalMinutes.ToString("F0") + ":" +  d.ToString(@"ss");
+                            Extra = Math.Floor(d.TotalMinutes).ToString("F0") + ":" +  d.ToString(@"ss");
 
                         }
                         NotifyPropertyChanged(nameof(Extra));

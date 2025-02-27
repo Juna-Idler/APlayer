@@ -149,7 +149,9 @@ namespace APlayer
 
             }
 
-            public void Start() {timer.Start();}
+            public bool IsPolling { get => timer.Enabled; }
+
+            public void Start() {timer.Start(); }
 
             public void Stop() { timer.Stop(); }
 

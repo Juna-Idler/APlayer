@@ -65,8 +65,10 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="PlayingTitle" Grid.Column="0" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}"
-                               VerticalAlignment="Center" TextAlignment="Center" FontSize="20" />
+                    <Button Click="PlaylistButton_Click" HorizontalAlignment="Stretch">
+                        <TextBlock x:Name="PlayingTitle" Grid.Column="0" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}"
+                                   VerticalAlignment="Center" TextAlignment="Center" FontSize="20" />
+                    </Button>
                     <ToggleButton Grid.Column="1" IsChecked="True" Padding="4,2" Margin="0,2,0,2"
                                   Checked="ToggleButton_Checked" Unchecked="ToggleButton_Unchecked" >
                         <TextBlock x:Name="VolumeNumber" Grid.Column="1" VerticalAlignment="Center"

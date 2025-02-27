@@ -161,6 +161,8 @@ namespace APlayer.StartPage
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
+
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
             if (OutputDeviceList.SelectedItem is OutputDevice od)
             {

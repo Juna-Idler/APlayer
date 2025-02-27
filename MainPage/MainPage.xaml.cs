@@ -147,6 +147,12 @@ namespace APlayer
                         {
                             MainFrame.Navigate(typeof(PlaylistPage));
                         }
+                        else
+                        {
+                            if (MainFrame.CanGoBack)
+                                MainFrame.GoBack();
+                        }
+
                     }
                 });
             }
@@ -207,29 +213,27 @@ namespace APlayer
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.BACK))
                 {
-                    if (sender is XInput.EventGenerator s)
-                    {
-                        App.Gamepad.CopyLastStateFrom(s);
-                        PlayerGamePad.Stop();
-                        App.Gamepad.Start();
-                        Player.Style = (Style)this.Resources["Uncontrolled"];
-                    }
+                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
+                    PlayerGamePad.Stop();
+                    App.Gamepad.Start();
+                    Player.Style = (Style)this.Resources["Uncontrolled"];
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
                 {
-                    if (sender is XInput.EventGenerator s)
+                    if (MainFrame.SourcePageType != typeof(PlaylistPage))
                     {
-                        if (MainFrame.SourcePageType != typeof(PlaylistPage))
-                        {
-                            MainFrame.Navigate(typeof(PlaylistPage));
-                            App.Gamepad.CopyLastStateFrom(s);
-                            PlayerGamePad.Stop();
-                            App.Gamepad.Start();
-                            Player.Style = (Style)this.Resources["Uncontrolled"];
-                        }
+                        App.Gamepad.CopyLastStateFrom(PlayerGamePad);
+                        PlayerGamePad.Stop();
+                        App.Gamepad.Start();
+                        Player.Style = (Style)this.Resources["Uncontrolled"];
+                        MainFrame.Navigate(typeof(PlaylistPage));
+                    }
+                    else
+                    {
+                        if (MainFrame.CanGoBack)
+                            MainFrame.GoBack();
                     }
                 }
-
             });
         }
 
@@ -381,6 +385,33 @@ namespace APlayer
         {
             VolumeSlider.Visibility = Visibility.Collapsed;
         }
+
+        private void PlaylistButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainFrame.SourcePageType != typeof(PlaylistPage))
+            {
+                if (PlayerGamePad.IsPolling)
+                {
+                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
+                    PlayerGamePad.Stop();
+                    App.Gamepad.Start();
+                    Player.Style = (Style)this.Resources["Uncontrolled"];
+                }
+                MainFrame.Navigate(typeof(PlaylistPage));
+            }
+            else
+            {
+                if (PlayerGamePad.IsPolling)
+                {
+                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
+                    PlayerGamePad.Stop();
+                    App.Gamepad.Start();
+                    Player.Style = (Style)this.Resources["Uncontrolled"];
+                }
+                if (MainFrame.CanGoBack)
+                    MainFrame.GoBack();
+            }
+        }
     }
 
     class PlayerViewModel : INotifyPropertyChanged
@@ -441,12 +472,12 @@ namespace APlayer
 
         public string PlayingPositionString
         {
-            get => playingPosition.TotalMinutes.ToString("F0") + playingPosition.ToString(@"\:ss\.ff");
+            get => ((int)playingPosition.TotalMinutes).ToString() + playingPosition.ToString(@"\:ss\.ff");
         }
 
         public string DurationString
         {
-            get => duration.TotalMinutes.ToString("F0") + duration.ToString(@"\:ss\.ff");
+            get => Math.Floor(duration.TotalMinutes).ToString("F0") + duration.ToString(@"\:ss\.ff");
         }
 
         private double volume;

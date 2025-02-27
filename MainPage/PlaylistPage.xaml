@@ -36,9 +36,9 @@
                         </Grid.ColumnDefinitions>
                         <SymbolIcon Symbol="Play" Visibility="{x:Bind Visibility,Mode=OneWay}" />
                         <TextBlock Text="{x:Bind Title}" Grid.Column="1" FontSize="20"
-                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                   TextWrapping="Wrap" VerticalAlignment="Center" />
                         <TextBlock Text="{x:Bind Duration}" Grid.Column="2" FontSize="18" Style="{StaticResource MonospacedFont}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center" TextAlignment="Right"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

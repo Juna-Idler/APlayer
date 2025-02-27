@@ -31,8 +31,7 @@
                 <SymbolIcon Symbol="Refresh" />
             </Button>
             <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" FontSize="18"
-                      ToolTipService.ToolTip="Output Device"
-                      SelectionChanged="OutputDeviceList_SelectionChanged" />
+                      ToolTipService.ToolTip="Output Device" />
             <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="5"
                     Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="10" />
         </Grid>

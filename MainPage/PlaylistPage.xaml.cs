@@ -199,6 +199,6 @@ namespace APlayer
         public Visibility Visibility { get => IsPlaying ? Visibility.Visible : Visibility.Collapsed; }
         public string Playing { get => IsPlaying ? "Playing" : ""; }
         public string Title { get; private set; }
-        public string Duration { get => ((int)Track.Duration.TotalMinutes).ToString("0") + Track.Duration.ToString(@"\:ss\.ff"); }
+        public string Duration { get => Math.Floor(Track.Duration.TotalMinutes).ToString("F0") + Track.Duration.ToString(@"\:ss\.ff"); }
     }
 }
