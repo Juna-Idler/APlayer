@@ -57,7 +57,7 @@ namespace APlayer
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged += OnGamepadButtonChanged;
+            App.Gamepad.Main.ButtonsChanged += OnGamepadButtonChanged;
 
             try
             {
@@ -107,7 +107,7 @@ namespace APlayer
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged -= OnGamepadButtonChanged;
+            App.Gamepad.Main.ButtonsChanged -= OnGamepadButtonChanged;
         }
 
 

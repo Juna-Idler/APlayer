@@ -106,12 +106,12 @@ namespace APlayer
             PlaylistView.SelectedIndex = index;
             PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
-            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
         }
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
 
 

@@ -50,7 +50,7 @@ namespace APlayer
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
             if (Initialized)
                 return;
 
@@ -58,7 +58,7 @@ namespace APlayer
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -221,8 +221,8 @@ namespace APlayer
 
         private void Flyout_Opened(object sender, object e)
         {
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
-            App.Gamepad.ButtonsChanged += OnFlyout_Gamepad_ButtonsChanged; 
+            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged += OnFlyout_Gamepad_ButtonsChanged; 
         }
 
         private bool Terminating = false;
@@ -231,9 +231,9 @@ namespace APlayer
             if (Terminating)
                 Terminating = false;
             else
-                App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+                App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
 
-            App.Gamepad.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
         }
 
         private void BackToStartPage()

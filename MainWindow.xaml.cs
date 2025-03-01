@@ -69,6 +69,7 @@ namespace APlayer
             {
                 BackdropList.SelectedIndex = 0;
             }
+            XInputUser.SelectedIndex = (int)App.Gamepad.Main.UserIndex;
 
             SetTitleBar(AppTitleBar);
             ExtendsContentIntoTitleBar = true;
@@ -161,10 +162,21 @@ namespace APlayer
             if (backdrop != null)
                 SystemBackdrop = backdrop;
         }
+        private void XInputUser_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            App.Gamepad.ChangeUserIndex((uint)XInputUser.SelectedIndex);
+        }
 
         private void Window_Closed(object sender, WindowEventArgs args)
         {
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+            var user = localSettings.Values["GamepadUserIndex"] as uint?;
+            if (user == null || user != App.Gamepad.Main.UserIndex)
+                localSettings.Values["GamepadUserIndex"] = App.Gamepad.Main.UserIndex;
+            var interval = localSettings.Values["GamepadInterval"] as TimeSpan?;
+            if (interval == null || interval != App.Gamepad.Main.Interval)
+                localSettings.Values["GamepadInterval"] = App.Gamepad.Main.Interval;
 
             var theme = localSettings.Values["Theme"] as int?;
             if (theme == null || theme != ThemeList.SelectedIndex)
@@ -200,6 +212,8 @@ namespace APlayer
                 App.DeleteLists.Clear();
             }
         }
+
+
     }
 
 }

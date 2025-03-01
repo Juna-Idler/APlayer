@@ -93,7 +93,7 @@ namespace APlayer
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged += OnGamepadButtonChanged;
+            App.Gamepad.Main.ButtonsChanged += OnGamepadButtonChanged;
 
             if (File != null)
             {
@@ -119,7 +119,7 @@ namespace APlayer
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             timer.Stop();
-            App.Gamepad.ButtonsChanged -= OnGamepadButtonChanged;
+            App.Gamepad.Main.ButtonsChanged -= OnGamepadButtonChanged;
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)

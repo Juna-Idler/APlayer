@@ -101,52 +101,53 @@ namespace APlayer
                 UserIndex = dwUserIndex;
                 timer = new System.Timers.Timer(interval.TotalMilliseconds);
 
-                timer.Elapsed += (sender, e) =>
+                timer.Elapsed += Timer_Elapsed;
+            }
+
+            private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+            {
+                XInputGetState(UserIndex, ref State);
+
+                Buttons button_changed = (State.Gamepad.wButtons ^ LastState.Gamepad.wButtons);
+                if (button_changed != 0)
                 {
-                    XInputGetState(UserIndex, ref State);
-
-                    Buttons button_changed = (State.Gamepad.wButtons ^ LastState.Gamepad.wButtons);
-                    if (button_changed != 0)
+                    Buttons pressed = button_changed & State.Gamepad.wButtons;
+                    Buttons rereased = button_changed & LastState.Gamepad.wButtons;
+                    ButtonsChanged?.Invoke(this, (pressed, rereased));
+                }
+                if ((LastState.Gamepad.bLeftTrigger != State.Gamepad.bLeftTrigger) ||
+                    (LastState.Gamepad.bRightTrigger != State.Gamepad.bRightTrigger))
+                {
+                    bool left_on = State.Gamepad.bLeftTrigger >= TriggerButtonThreshold;
+                    bool right_on = State.Gamepad.bRightTrigger >= TriggerButtonThreshold;
+                    TriggerButtons trigger_button_state = (left_on ? TriggerButtons.Left : 0) | (right_on ? TriggerButtons.Right : 0);
+                    TriggerButtons trigger_changed = trigger_button_state ^ last_trigger_button_state;
+                    if (trigger_changed != 0)
                     {
-                        Buttons pressed = button_changed & State.Gamepad.wButtons;
-                        Buttons rereased = button_changed & LastState.Gamepad.wButtons;
-                        ButtonsChanged?.Invoke(this, (pressed,rereased));
+                        TriggerButtonsChanged?.Invoke(this, (
+                            trigger_changed & trigger_button_state,
+                            trigger_changed & last_trigger_button_state));
                     }
-                    if ((LastState.Gamepad.bLeftTrigger != State.Gamepad.bLeftTrigger) ||
-                        (LastState.Gamepad.bRightTrigger != State.Gamepad.bRightTrigger))
+                    last_trigger_button_state = trigger_button_state;
+                }
+                if ((LastState.Gamepad.sThumbLY != State.Gamepad.sThumbLY) ||
+                    (LastState.Gamepad.sThumbLX != State.Gamepad.sThumbLX))
+                {
+                    bool up = State.Gamepad.sThumbLY >= StickButtonThreshold;
+                    bool down = State.Gamepad.sThumbLY < -StickButtonThreshold;
+                    bool right = State.Gamepad.sThumbLX >= StickButtonThreshold;
+                    bool left = State.Gamepad.sThumbLX < -StickButtonThreshold;
+                    StickButtons left_state = (up ? StickButtons.Up : 0) | (down ? StickButtons.Down : 0) | (left ? StickButtons.Left : 0) | (right ? StickButtons.Right : 0);
+                    StickButtons left_changed = left_state ^ last_left_stick_button_state;
+                    if (left_changed != 0)
                     {
-                        bool left_on = State.Gamepad.bLeftTrigger >= TriggerButtonThreshold;
-                        bool right_on = State.Gamepad.bRightTrigger >= TriggerButtonThreshold;
-                        TriggerButtons trigger_button_state = (left_on ? TriggerButtons.Left : 0) | (right_on ? TriggerButtons.Right : 0);
-                        TriggerButtons trigger_changed = trigger_button_state ^ last_trigger_button_state;
-                        if (trigger_changed != 0)
-                        {
-                            TriggerButtonsChanged?.Invoke(this, (
-                                trigger_changed & trigger_button_state,
-                                trigger_changed & last_trigger_button_state));
-                        }
-                        last_trigger_button_state = trigger_button_state;
+                        LeftStickButtonsChanged?.Invoke(this, (left_changed & left_state,
+                            left_changed & last_left_stick_button_state));
                     }
-                    if ((LastState.Gamepad.sThumbLY != State.Gamepad.sThumbLY) ||
-                        (LastState.Gamepad.sThumbLX != State.Gamepad.sThumbLX))
-                    {
-                        bool up = State.Gamepad.sThumbLY >= StickButtonThreshold;
-                        bool down = State.Gamepad.sThumbLY < -StickButtonThreshold;
-                        bool right = State.Gamepad.sThumbLX >= StickButtonThreshold;
-                        bool left = State.Gamepad.sThumbLX < -StickButtonThreshold;
-                        StickButtons left_state = (up ? StickButtons.Up : 0) | (down ? StickButtons.Down : 0) | (left ? StickButtons.Left : 0) | (right ? StickButtons.Right : 0);
-                        StickButtons left_changed = left_state ^ last_left_stick_button_state;
-                        if (left_changed != 0)
-                        {
-                            LeftStickButtonsChanged?.Invoke(this, (left_changed & left_state,
-                                left_changed & last_left_stick_button_state));
-                        }
-                        last_left_stick_button_state = left_state;
-                    }
+                    last_left_stick_button_state = left_state;
+                }
 
-                    LastState = State;
-                };
-
+                LastState = State;
             }
 
             public bool IsPolling { get => timer.Enabled; }

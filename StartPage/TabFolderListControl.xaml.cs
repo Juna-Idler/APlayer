@@ -129,12 +129,12 @@ namespace APlayer.StartPage
         {
             if (TabFolderListItems.Count > 0)
                 SelectedIndex = 0;
-            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
 
 

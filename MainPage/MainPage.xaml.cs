@@ -34,7 +34,6 @@ namespace APlayer
         private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
         private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
 
-        private readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
 //        private bool TriggerOn = false;
 
         public MainPage()
@@ -61,17 +60,19 @@ namespace APlayer
                 MainFrame.Navigate(typeof(FilerPage), (SavedList,SavedFolder, folder, Frame));
             }
 
-            App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
-            App.Gamepad.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;
-            PlayerGamePad.ButtonsChanged += PlayerGamePad_ButtonsChanged; ;
-            PlayerGamePad.TriggerButtonsChanged += PlayerGamePad_TriggerButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
+            App.Gamepad.Main.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;
+            App.Gamepad.Sub.ButtonsChanged += PlayerGamePad_ButtonsChanged;
+            App.Gamepad.Sub.TriggerButtonsChanged += PlayerGamePad_TriggerButtonsChanged;
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
             App.SoundPlayer.FrameReported += SoundPlayer_PeakReported;
 
-            VolumeSlider.Value = ToDecibel(App.SoundPlayer.OutputGain);
+            double db = ToDecibel(App.SoundPlayer.OutputGain);
+            db = Math.Clamp(db + 1, GainMin, GainMax);
+            VolumeSlider.Value = db;
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -79,10 +80,10 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
-            App.Gamepad.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
-            PlayerGamePad.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
-            PlayerGamePad.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
+            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
+            App.Gamepad.Main.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
+            App.Gamepad.Sub.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
+            App.Gamepad.Sub.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
@@ -139,9 +140,9 @@ namespace APlayer
                 {
                     if (e.pressed.HasFlag(XInput.Buttons.BACK))
                     {
-                        PlayerGamePad.CopyLastStateFrom(s);
-                        App.Gamepad.Stop();
-                        PlayerGamePad.Start();
+                        App.Gamepad.Sub.CopyLastStateFrom(s);
+                        App.Gamepad.Main.Stop();
+                        App.Gamepad.Sub.Start();
                         Player.Style = (Style)this.Resources["Controlled"];
                     }
                     if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
@@ -216,18 +217,14 @@ namespace APlayer
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.BACK))
                 {
-                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
-                    PlayerGamePad.Stop();
-                    App.Gamepad.Start();
+                    App.Gamepad.SwitchToMain();
                     Player.Style = (Style)this.Resources["Uncontrolled"];
                 }
                 if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
                 {
                     if (MainFrame.SourcePageType != typeof(PlaylistPage))
                     {
-                        App.Gamepad.CopyLastStateFrom(PlayerGamePad);
-                        PlayerGamePad.Stop();
-                        App.Gamepad.Start();
+                        App.Gamepad.SwitchToMain();
                         Player.Style = (Style)this.Resources["Uncontrolled"];
                         MainFrame.Navigate(typeof(PlaylistPage));
                     }
@@ -396,22 +393,18 @@ namespace APlayer
         {
             if (MainFrame.SourcePageType != typeof(PlaylistPage))
             {
-                if (PlayerGamePad.IsPolling)
+                if (App.Gamepad.IsSubPolling)
                 {
-                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
-                    PlayerGamePad.Stop();
-                    App.Gamepad.Start();
+                    App.Gamepad.SwitchToMain();
                     Player.Style = (Style)this.Resources["Uncontrolled"];
                 }
                 MainFrame.Navigate(typeof(PlaylistPage));
             }
             else
             {
-                if (PlayerGamePad.IsPolling)
+                if (App.Gamepad.IsSubPolling)
                 {
-                    App.Gamepad.CopyLastStateFrom(PlayerGamePad);
-                    PlayerGamePad.Stop();
-                    App.Gamepad.Start();
+                    App.Gamepad.SwitchToMain();
                     Player.Style = (Style)this.Resources["Uncontrolled"];
                 }
                 if (MainFrame.CanGoBack)

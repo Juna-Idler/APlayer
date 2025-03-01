@@ -35,16 +35,23 @@ namespace APlayer
         public App()
         {
             this.InitializeComponent();
+        }
 
-            Gamepad.UserIndex = 0;
-            Gamepad.Interval = TimeSpan.FromMilliseconds(16);
-            Gamepad.Start();
-
+        static App()
+        {
+            var local = Windows.Storage.ApplicationData.Current.LocalSettings;
+            var user = local.Values["GamepadUserIndex"] as uint?;
+            if (user == null || user >= 4)
+                user = 0;
+            var interval = local.Values["GamepadInterval"] as TimeSpan?;
+            if (interval == null || interval  <= TimeSpan.Zero)
+                interval = TimeSpan.FromMilliseconds(16);
+            Gamepad = new(user.Value,interval.Value);
         }
 
         public static Window? MainWindow { get; private set; }
 
-        public static XInput.EventGenerator Gamepad { get; private set; }= new(0, TimeSpan.FromMilliseconds(16));
+        public static Gamepad Gamepad { get; private set; }
 
         private static SoundPlayer soundPlayer { get; set; } = new();
         public static ISoundPlayer SoundPlayer { get => soundPlayer; }
