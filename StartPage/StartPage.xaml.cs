@@ -57,7 +57,7 @@ namespace APlayer.StartPage
             }
             if (TabFolderListControl.TabFolderListItems.Count == 0)
             {
-                TabFolderListControl.TabFolderListItems.Add(new("First List", [],""));
+                TabFolderListControl.TabFolderListItems.Add(new("First List", [],"list0.json"));
             }
         }
 
@@ -109,7 +109,7 @@ namespace APlayer.StartPage
             return null;
         }
 
-        private void TabFolderListControl_SelectedFolder(object sender, (string name, string path) e)
+        private void TabFolderListControl_SelectedFolder(object sender, (SaveData.Folder, SaveData.List) e)
         {
             this.Frame.Navigate(typeof(MainPage), e,
                 new SlideNavigationTransitionInfo()

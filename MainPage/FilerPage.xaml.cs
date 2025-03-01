@@ -16,6 +16,7 @@ using Windows.Storage;
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Media.Core;
+using APlayer.StartPage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -38,6 +39,9 @@ namespace APlayer
         private readonly Flyout Flyout;
         private Frame? WindowFrame = null;
 
+        private SaveData.Folder? SavedFolder = null;
+        private SaveData.List? SavedList = null;
+
 
         public FilerPage()
         {
@@ -50,9 +54,24 @@ namespace APlayer
             if (Initialized)
                 return;
 
-            if (Folder == null)
-                throw new Exception();
-            var fvc = new FilerViewControl(Folder, 0);
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
+        }
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            if (Initialized)
+                return;
+            (SaveData.List list, SaveData.Folder sfolder, StorageFolder folder, Frame frame) = ((SaveData.List, SaveData.Folder, StorageFolder, Frame))e.Parameter;
+            SavedFolder = sfolder;
+            SavedList = list;
+
+            Folder = folder;
+            WindowFrame = frame;
+
+            var fvc = new FilerViewControl(SavedList, SavedFolder, Folder, 0);
             fvc.RequestedBack += Fvc_RequestedBack;
             fvc.RequestedFolder += Fvc_RequestedFolder;
             fvc.RequestedFile += Fvc_RequestedFile;
@@ -66,19 +85,6 @@ namespace APlayer
             FolderBreadcrumbBar.ItemsSource = Crumbs;
 
             Initialized = true;
-        }
-
-        private void Page_Unloaded(object sender, RoutedEventArgs e)
-        {
-            App.Gamepad.ButtonsChanged -= Gamepad_ButtonsChanged;
-        }
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            if (Initialized)
-                return;
-            (StorageFolder folder, Frame frame) = ((StorageFolder, Frame))e.Parameter;
-            Folder = folder;
-            WindowFrame = frame;
         }
 
         private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)

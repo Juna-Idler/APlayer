@@ -38,7 +38,7 @@ namespace APlayer.StartPage
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public event EventHandler<(string name, string path)>? SelectedFolder;
+        public event EventHandler<(SaveData.Folder,SaveData.List)>? SelectedFolder;
 
         public ObservableCollection<TabFolderListItem> TabFolderListItems { get; private set; } = [];
         public List<string> DeleteItems { get; private set; } = [];
@@ -91,6 +91,16 @@ namespace APlayer.StartPage
         }
 
 
+        private void SelectedFolderInvoke(SavedFolder sf)
+        {
+            SaveData.List list = App.SavedLists[TabFolderListItems[SelectedIndex].FileName];
+            var folder = list.Folders.FirstOrDefault(f => f.Path == sf.Path, null);
+            if (folder != null)
+            {
+                SelectedFolder?.Invoke(this, (folder, list));
+            }
+        }
+
 
         private void Folder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
@@ -98,7 +108,7 @@ namespace APlayer.StartPage
             {
                 if (fe.DataContext is SavedFolder sf)
                 {
-                    SelectedFolder?.Invoke(this,(sf.Name, sf.Path));
+                    SelectedFolderInvoke(sf);
                 }
             }
         }
@@ -171,7 +181,7 @@ namespace APlayer.StartPage
                     {
                         if (current.Folders[current.SelectedIndex] is SavedFolder folder)
                         {
-                            SelectedFolder?.Invoke(this, (folder.Name, folder.Path));
+                            SelectedFolderInvoke(folder);
                         }
                     }
                 }
@@ -366,7 +376,6 @@ namespace APlayer.StartPage
                         e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
                 }
             }
-            System.Diagnostics.Debug.WriteLine("Item Enter");
         }
 
         private void TabViewItem_DragOver(object sender, DragEventArgs e)
@@ -457,7 +466,7 @@ namespace APlayer.StartPage
         }
         public ObservableCollection<SavedFolder> Folders { get; set; }
 
-        public string FileName { get; set; }
+        public string FileName { get; private set; }
 
         private int selectedIndex;
 

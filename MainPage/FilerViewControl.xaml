@@ -9,8 +9,13 @@
     mc:Ignorable="d" Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded">
 
     <UserControl.Resources>
+        <MenuFlyout x:Key="FolderMenu">
+            <MenuFlyoutItem Text="Add StartPage" Click="MenuFlyoutItemAddStartPage_Click" />
+        </MenuFlyout>
+        
+        
         <DataTemplate x:Key="FolderItemTemplate" x:DataType="local:FolderItem">
-            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="4">
+            <Grid DoubleTapped="Item_DoubleTapped" ColumnSpacing="4" ContextFlyout="{StaticResource FolderMenu}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>

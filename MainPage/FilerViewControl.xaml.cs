@@ -31,9 +31,15 @@ namespace APlayer
 
         public FilerViewControl? ParentFolder { get; private set; }
 
-        public FilerViewControl(StorageFolder folder,uint depth = 0,FilerViewControl? parent = null)
+        private SaveData.Folder SavedFolder;
+        private SaveData.List SavedList;
+
+        public FilerViewControl(SaveData.List saved_list, SaveData.Folder saved_folder,
+            StorageFolder folder, uint depth = 0, FilerViewControl? parent = null)
         {
             this.InitializeComponent();
+            SavedFolder = saved_folder;
+            SavedList = saved_list;
 
             Folder = folder;
             Depth = depth;
@@ -73,7 +79,7 @@ namespace APlayer
                 var folder = item.Item as StorageFolder;
                 if (folder != null)
                 {
-                    var chiled = new FilerViewControl(folder, Depth + 1, this);
+                    var chiled = new FilerViewControl(SavedList,SavedFolder,folder, Depth + 1, this);
                     item.Created = chiled;
                     RequestedFolder?.Invoke(this, chiled);
                 }
@@ -137,6 +143,12 @@ namespace APlayer
                 }
             }
 
+        }
+
+        private void MenuFlyoutItemAddStartPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem { DataContext: FolderItem folder })
+                SavedList.Folders = SavedList.Folders.Append(new SaveData.Folder(folder.Name, folder.Item.Path));
         }
     }
     public partial class FolderItem : INotifyPropertyChanged

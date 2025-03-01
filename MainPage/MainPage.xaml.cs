@@ -25,10 +25,11 @@ namespace APlayer
 
         private DispatcherTimer Timer = new();
 
-        private string rootFolderPath = "";
-        private StorageFolder? rootFolder = null;
 
         PlayerViewModel viewModel { get; set; } = new PlayerViewModel();
+
+        private SaveData.Folder? SavedFolder = null;
+        private SaveData.List? SavedList = null;
 
         private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
         private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
@@ -50,13 +51,15 @@ namespace APlayer
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            (string name, string path) = ((string name,string path))(e.Parameter);
-            rootFolderPath = path;
+            (SavedFolder, SavedList) = ((SaveData.Folder, SaveData.List))e.Parameter;
         }
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            rootFolder = await StorageFolder.GetFolderFromPathAsync(rootFolderPath);
-            MainFrame.Navigate(typeof(FilerPage), (rootFolder, Frame));
+            if (SavedFolder != null)
+            {
+                var folder = await StorageFolder.GetFolderFromPathAsync(SavedFolder.Path);
+                MainFrame.Navigate(typeof(FilerPage), (SavedList,SavedFolder, folder, Frame));
+            }
 
             App.Gamepad.ButtonsChanged += Gamepad_ButtonsChanged;
             App.Gamepad.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;

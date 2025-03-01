@@ -51,9 +51,9 @@ namespace APlayer
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
         public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents([]);
-
         public static Dictionary<string,SaveData.List> SavedLists { get; private set; } = [];
         public static List<string> DeleteLists { get; private set; } = [];
+        public static SaveData.List? CurrentList { get; set; } = null;
 
         /// <summary>
         /// Invoked when the application is launched.
