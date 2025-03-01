@@ -94,7 +94,7 @@ namespace APlayer.StartPage
         private void SelectedFolderInvoke(SavedFolder sf)
         {
             SaveData.List list = App.SavedLists[TabFolderListItems[SelectedIndex].FileName];
-            var folder = list.Folders.FirstOrDefault(f => f.Path == sf.Path, null);
+            var folder = list.Folders.Find(f => f.Path == sf.Path);
             if (folder != null)
             {
                 SelectedFolder?.Invoke(this, (folder, list));
@@ -447,7 +447,7 @@ namespace APlayer.StartPage
         }
         public void UpdateList()
         {
-            App.SavedLists[FileName] = new List(Name, Folders.Select(f => new Folder(f.Name, f.Path)));
+            App.SavedLists[FileName] = new List(Name, Folders.Select(f => new Folder(f.Name, f.Path)).ToList());
         }
 
 

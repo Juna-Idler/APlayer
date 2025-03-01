@@ -36,8 +36,7 @@
                             <x:String>Acrylic</x:String>
                         </ComboBox>
                     </Grid>
-                    <TextBlock Text="{x:Bind LocalFolder}" />
-
+                    <TextBox Text="{x:Bind LocalFolder}" IsReadOnly="True" />
 
                 </StackPanel>
             </Flyout>

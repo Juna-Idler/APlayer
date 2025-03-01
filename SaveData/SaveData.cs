@@ -134,10 +134,10 @@ namespace APlayer.SaveData
         public int Order { get; set; } = order;
     }
 
-    public class List(string name, IEnumerable<Folder> folders)
+    public class List(string name, List<Folder> folders)
     {
         public string Name { get; set; } = name;
-        public IEnumerable<Folder> Folders { get; set; } = folders;
+        public List<Folder> Folders { get; set; } = folders;
     }
     public class Folder(string name, string path)
     {

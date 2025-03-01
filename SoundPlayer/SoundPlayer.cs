@@ -130,6 +130,7 @@ namespace APlayer
                 }
 
                 AudioGraph = result.Graph;
+                AudioGraph.UnrecoverableErrorOccurred += AudioGraph_UnrecoverableErrorOccurred;
             }
             {
                 var result = await AudioGraph.CreateDeviceOutputNodeAsync();
@@ -143,6 +144,15 @@ namespace APlayer
             State = PlayerState.Empty;
             return true;
         }
+
+        private void AudioGraph_UnrecoverableErrorOccurred(AudioGraph sender, AudioGraphUnrecoverableErrorOccurredEventArgs args)
+        {
+            if (sender == AudioGraph && args.Error != AudioGraphUnrecoverableError.None)
+            {
+                Terminalize();
+            }
+        }
+
         public void Terminalize()
         {
             ResetPlayList();

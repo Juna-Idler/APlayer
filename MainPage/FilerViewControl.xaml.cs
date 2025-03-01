@@ -148,7 +148,7 @@ namespace APlayer
         private void MenuFlyoutItemAddStartPage_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem { DataContext: FolderItem folder })
-                SavedList.Folders = SavedList.Folders.Append(new SaveData.Folder(folder.Name, folder.Item.Path));
+                SavedList.Folders.Add(new SaveData.Folder(folder.Name, folder.Item.Path));
         }
     }
     public partial class FolderItem : INotifyPropertyChanged

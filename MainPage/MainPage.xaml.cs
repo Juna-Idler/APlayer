@@ -35,7 +35,7 @@ namespace APlayer
         private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
 
         private readonly XInput.EventGenerator PlayerGamePad = new(0, TimeSpan.FromMilliseconds(16));
-        private bool TriggerOn = false;
+//        private bool TriggerOn = false;
 
         public MainPage()
         {
@@ -167,11 +167,11 @@ namespace APlayer
             {
                 if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
                 {
-                    TriggerOn = true;
+//                    TriggerOn = true;
                 }
                 if (e.released.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
                 {
-                    TriggerOn = false;
+//                    TriggerOn = false;
                 }
 
             });
@@ -262,20 +262,23 @@ namespace APlayer
 
         private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<ISoundPlayer.ITrack> list, int index) e)
         {
-            viewModel.Playlist = e.list;
-            viewModel.CurrentPlaylistIndex = e.index;
-            if (e.index < 0)
+            this.DispatcherQueue.TryEnqueue(() =>
             {
-                viewModel.PlayingTitle = "";
-                viewModel.PlayingPosition = TimeSpan.Zero;
-                viewModel.Duration = TimeSpan.Zero;
-            }
-            else
-            {
-                viewModel.PlayingTitle = e.list[e.index].Name;
-                viewModel.PlayingPosition = TimeSpan.Zero;
-                viewModel.Duration = e.list[e.index].Duration;
-            }
+                viewModel.Playlist = e.list;
+                viewModel.CurrentPlaylistIndex = e.index;
+                if (e.index < 0)
+                {
+                    viewModel.PlayingTitle = "";
+                    viewModel.PlayingPosition = TimeSpan.Zero;
+                    viewModel.Duration = TimeSpan.Zero;
+                }
+                else
+                {
+                    viewModel.PlayingTitle = e.list[e.index].Name;
+                    viewModel.PlayingPosition = TimeSpan.Zero;
+                    viewModel.Duration = e.list[e.index].Duration;
+                }
+            });
         }
 
         private void SoundPlayer_CurrentIndexChanged(object? sender, int e)
