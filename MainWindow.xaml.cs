@@ -34,10 +34,12 @@ namespace APlayer
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-
+        private string LocalFolder = "";
 
         public MainWindow()
         {
+            LocalFolder = ApplicationData.Current.LocalFolder.Path;
+
             this.InitializeComponent();
 
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -182,6 +184,20 @@ namespace APlayer
             if (old_rect == null || old_rect != rect)
             {
                 localSettings.Values["WindowPosSize"] = rect;
+            }
+
+            if (App.SaveFolder != null)
+            {
+                foreach (var item in App.SavedContents.Indexes)
+                {
+                    if (App.SavedLists.TryGetValue(item.FileName, out var list))
+                    {
+                        _ = SaveData.SaveData.SaveList(list, App.SaveFolder, item.FileName);
+                    }
+                }
+                _ = SaveData.SaveData.SaveContents(App.SavedContents, App.SaveFolder);
+                _ = SaveData.SaveData.DeleteList(App.SaveFolder, App.DeleteLists);
+                App.DeleteLists.Clear();
             }
         }
     }

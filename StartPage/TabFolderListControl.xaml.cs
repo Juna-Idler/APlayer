@@ -1,3 +1,4 @@
+using APlayer.SaveData;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -40,7 +41,7 @@ namespace APlayer.StartPage
         public event EventHandler<(string name, string path)>? SelectedFolder;
 
         public ObservableCollection<TabFolderListItem> TabFolderListItems { get; private set; } = [];
-        public bool Updated { get; set; } = false;
+        public List<string> DeleteItems { get; private set; } = [];
 
         private int selectedIndex = -1;
         public int SelectedIndex
@@ -63,33 +64,11 @@ namespace APlayer.StartPage
         public TabFolderListControl()
         {
             this.InitializeComponent();
-            TabFolderListItems.CollectionChanged += (s, e) =>
-            {
-                Updated = true;
-                if (e.NewItems != null)
-                {
-                    foreach (TabFolderListItem item in e.NewItems)
-                    {
-                        item.Folders.CollectionChanged += Folders_CollectionChanged;
-                    }
-                }
-                if (e.OldItems != null)
-                {
-                    foreach (TabFolderListItem item in e.OldItems)
-                    {
-                        item.Folders.CollectionChanged -= Folders_CollectionChanged;
-                    }
-                }
-            };
+            TabFolderListItems.CollectionChanged += (s, e) => UpdateContents();
 
             FolderFlyout = (Flyout)Resources["FolderFlyout"];
             TabHeaderFlyout = (Flyout)Resources["TabItemHeaderFlyout"];
             AddTabFlyout = (Flyout)Resources["AddTabFlyout"];
-        }
-
-        private void Folders_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            Updated = true;
         }
 
         public void AddFolder(StorageFolder folder)
@@ -98,8 +77,20 @@ namespace APlayer.StartPage
                 return;
             var current = TabFolderListItems[SelectedIndex];
             current.Folders.Add(new SavedFolder(folder.Name, folder.Path));
-            Updated = true;
         }
+
+        private void UpdateContents()
+        {
+            List<ListIndex> new_indexes = [];
+            int i = 0;
+            foreach (var item in TabFolderListItems)
+            {
+                new_indexes.Add(new SaveData.ListIndex(item.Name, item.FileName, i++));
+            }
+            App.SavedContents.Indexes = new_indexes;
+        }
+
+
 
         private void Folder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
@@ -213,7 +204,7 @@ namespace APlayer.StartPage
                     if (item.Name != TabNameText.Text)
                     {
                         item.Name = TabNameText.Text;
-                        Updated = true;
+                        UpdateContents();
                     }
                 }
             }
@@ -230,7 +221,7 @@ namespace APlayer.StartPage
                         if (item.Name != TabNameText.Text)
                         {
                             item.Name = TabNameText.Text;
-                            Updated = true;
+                            UpdateContents();
                         }
                     }
                 }
@@ -244,8 +235,8 @@ namespace APlayer.StartPage
             {
                 if (fe.DataContext is TabFolderListItem item)
                 {
+                    DeleteItems.Add(item.FileName);
                     TabFolderListItems.Remove(item);
-                    Updated = true;
                 }
             }
             TabHeaderFlyout.Hide();
@@ -265,22 +256,30 @@ namespace APlayer.StartPage
 
         private void TabView_AddTabButtonClick(TabView sender, object args)
         {
-            var tab = new TabFolderListItem("new_list", []);
+            List<string> existing = TabFolderListItems.Select(item => item.FileName).ToList();
+            int i = 0;
+            string unique_name = string.Format("list{0}.json", i);
+            while (existing.Contains(unique_name))
+            {
+                unique_name = string.Format("list{0}.json", ++i);
+            }
+            var tab = new TabFolderListItem("new_list", [],unique_name);
             TabFolderListItems.Add(tab);
-            Updated = true;
+            tab.UpdateList();
             SelectedIndex  = TabFolderListItems.Count - 1;
-            AddTabFlyout.ShowAt(sender);
-        }
 
-        private void AddTabNameText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            TabFolderListItems.Last().Name = AddTabNameText.Text;
-            Updated = true;
+            AddTabFlyout.ShowAt(sender);
         }
 
         private void AddTabFlyout_Opened(object sender, object e)
         {
             AddTabNameText.Text = TabFolderListItems.Last().Name;
+        }
+        private void AddTabFlyout_Closed(object sender, object e)
+        {
+            var item = TabFolderListItems.Last();
+            item.Name = AddTabNameText.Text;
+            UpdateContents();
         }
 
         private void FolderFlyout_Opened(object sender, object e)
@@ -302,7 +301,7 @@ namespace APlayer.StartPage
                     if (folder.Name != FolderNameText.Text)
                     {
                         folder.Name = FolderNameText.Text;
-                        Updated = true;
+                        TabFolderListItems[SelectedIndex].UpdateList();
                     }
                 }
             }
@@ -319,7 +318,7 @@ namespace APlayer.StartPage
                         if (folder.Name != FolderNameText.Text)
                         {
                             folder.Name = FolderNameText.Text;
-                            Updated = true;
+                            TabFolderListItems[SelectedIndex].UpdateList();
                         }
                     }
                 }
@@ -334,7 +333,6 @@ namespace APlayer.StartPage
                 if (fe.DataContext is SavedFolder folder)
                 {
                     TabFolderListItems[SelectedIndex].Folders.Remove(folder);
-                    Updated = true;
                 }
             }
             FolderFlyout.Hide();
@@ -421,7 +419,7 @@ namespace APlayer.StartPage
 
     }
 
-    public partial class TabFolderListItem(string name, ObservableCollection<SavedFolder> folders) : INotifyPropertyChanged
+    public partial class TabFolderListItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -429,7 +427,22 @@ namespace APlayer.StartPage
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public string name = name;
+        public TabFolderListItem(string name, ObservableCollection<SavedFolder> folders,string file_name)
+        {
+            this.name = name;
+            Folders = folders;
+            FileName = file_name;
+            selectedIndex = (folders.Count == 0) ? -1 : 0;
+
+            Folders.CollectionChanged += (s, e) => UpdateList();
+        }
+        public void UpdateList()
+        {
+            App.SavedLists[FileName] = new List(Name, Folders.Select(f => new Folder(f.Name, f.Path)));
+        }
+
+
+        public string name;
         public string Name
         {
             get => name;
@@ -439,11 +452,16 @@ namespace APlayer.StartPage
                     return;
                 name = value;
                 NotifyPropertyChanged();
+                UpdateList();
             }
         }
-        public ObservableCollection<SavedFolder> Folders { get; set; } = folders;
+        public ObservableCollection<SavedFolder> Folders { get; set; }
 
-        private int selectedIndex = (folders.Count == 0) ? -1 : 0;
+        public string FileName { get; set; }
+
+        private int selectedIndex;
+
+
         public int SelectedIndex
         {
             get => selectedIndex;
@@ -477,7 +495,7 @@ namespace APlayer.StartPage
                     return;
                 selected = value;
                 NotifyPropertyChanged();
-                NotifyPropertyChanged("FontSize");
+                NotifyPropertyChanged(nameof(FontSize));
 
             }
         }

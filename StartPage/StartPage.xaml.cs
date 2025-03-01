@@ -24,6 +24,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using APlayer;
 using System.Diagnostics;
 using System.Reflection;
+using APlayer.SaveData;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -42,27 +43,22 @@ namespace APlayer.StartPage
         {
             this.InitializeComponent();
 
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            if (localSettings.Values["SavedData"] is string json)
+            foreach (var item in App.SavedContents.Indexes)
             {
-                var saved_data = JsonSerializer.Deserialize<SavedData>(json, SourceGenerationContext.Default.SavedData);
-                if (saved_data != null)
+                if (App.SavedLists.TryGetValue(item.FileName, out var list))
                 {
-                    var items = saved_data.Groups.Select(
-                        g => new TabFolderListItem(g.Name, new ObservableCollection<SavedFolder>(g.Folders.Select(
-                            f => new SavedFolder(f.Name, f.Path)))));
-
-                    foreach (var item in items)
-                    {
-                        TabFolderListControl.TabFolderListItems.Add(item);
-                    }
+                    TabFolderListControl.TabFolderListItems.Add(
+                        new TabFolderListItem(
+                            item.Name,
+                            new ObservableCollection<SavedFolder>(
+                                list.Folders.Select(f => new SavedFolder(f.Name, f.Path))),
+                            item.FileName));
                 }
             }
             if (TabFolderListControl.TabFolderListItems.Count == 0)
             {
-                TabFolderListControl.TabFolderListItems.Add(new("First List", []));
+                TabFolderListControl.TabFolderListItems.Add(new("First List", [],""));
             }
-
         }
 
 
@@ -171,19 +167,9 @@ namespace APlayer.StartPage
                     localSettings.Values["OutputDevice"] = od.ToString();
                 }
             }
-            if (TabFolderListControl.Updated)
-            {
-                var save_data = new SavedData(TabFolderListControl.TabFolderListItems.Select(
-                    item => new SavedData.Group(item.Name, item.Folders.Select(
-                        folder => new SavedData.Group.Folder(folder.Name, folder.Path)))));
-                string json = JsonSerializer.Serialize(save_data, SourceGenerationContext.Default.SavedData);
-
-                if (localSettings.Values["SavedData"] is not string data || data != json)
-                {
-                    localSettings.Values["SavedData"] = json;
-                }
-            }
         }
+
+
 
         private async void DeviceUpdateButton_Click(object sender, RoutedEventArgs e)
         {

@@ -12,28 +12,34 @@
     <Grid>
         <Grid.Resources>
             <Flyout x:Key="SettingFlyout">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Theme" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" />
-                    <ComboBox x:Name="ThemeList" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="ThemeList_SelectionChanged">
-                        <x:String>Default</x:String>
-                        <x:String>Light</x:String>
-                        <x:String>Dark</x:String>
-                    </ComboBox>
-                    <TextBlock Text="Backdrop" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" />
-                    <ComboBox x:Name="BackdropList" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="Backdrop_SelectionChanged">
-                        <x:String>Mica</x:String>
-                        <x:String>Mica Alt</x:String>
-                        <x:String>Acrylic</x:String>
-                    </ComboBox>
-                </Grid>
+                <StackPanel>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Theme" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" />
+                        <ComboBox x:Name="ThemeList" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="ThemeList_SelectionChanged">
+                            <x:String>Default</x:String>
+                            <x:String>Light</x:String>
+                            <x:String>Dark</x:String>
+                        </ComboBox>
+                        <TextBlock Text="Backdrop" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" />
+                        <ComboBox x:Name="BackdropList" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="Backdrop_SelectionChanged">
+                            <x:String>Mica</x:String>
+                            <x:String>Mica Alt</x:String>
+                            <x:String>Acrylic</x:String>
+                        </ComboBox>
+                    </Grid>
+                    <TextBlock Text="{x:Bind LocalFolder}" />
+
+
+                </StackPanel>
             </Flyout>
         </Grid.Resources>
         <Grid.RowDefinitions>

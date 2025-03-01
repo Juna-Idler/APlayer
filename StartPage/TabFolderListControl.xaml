@@ -43,8 +43,8 @@
                 <Button Grid.Row="1" Content="Delete" Click="DeleteButton_Click"/>
             </Grid>
         </Flyout>
-        <Flyout x:Key="AddTabFlyout" Opened="AddTabFlyout_Opened">
-                <TextBox x:Name="AddTabNameText" TextChanged="AddTabNameText_TextChanged" />
+        <Flyout x:Key="AddTabFlyout" Opened="AddTabFlyout_Opened" Closed="AddTabFlyout_Closed">
+                <TextBox x:Name="AddTabNameText" />
         </Flyout>
 
 
