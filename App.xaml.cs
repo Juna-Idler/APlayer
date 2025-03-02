@@ -57,7 +57,7 @@ namespace APlayer
         public static ISoundPlayer SoundPlayer { get => soundPlayer; }
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
-        public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents([]);
+        public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents();
         public static Dictionary<string,SaveData.List> SavedLists { get; private set; } = [];
         public static List<string> DeleteLists { get; private set; } = [];
         public static SaveData.List? CurrentList { get; set; } = null;
@@ -87,7 +87,7 @@ namespace APlayer
             }
             else
             {
-                SavedContents = new SaveData.Contents([]);
+                SavedContents = new SaveData.Contents();
                 var files = await SaveFolder.GetFilesAsync();
                 int i = 0;
                 foreach (var item in files)

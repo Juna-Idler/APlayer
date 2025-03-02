@@ -123,14 +123,16 @@ namespace APlayer.SaveData
     internal partial class ListContext : JsonSerializerContext { }
 
 
-    public class Contents(List<ListIndex> indexes)
+    public class Contents
     {
-        public List<ListIndex> Indexes { get; set; } = indexes;
+        public List<ListIndex> Indexes { get; set; } = [];
+        public int Index { get; set; } = 0;
+        public int FolderIndex { get; set; } = 0;
     }
-    public class ListIndex(string name, string file_name, int order)
+    public class ListIndex(string name, string filename, int order)
     {
         public string Name { get; set; } = name;
-        public string FileName { get; set; } = file_name;
+        public string FileName { get; set; } = filename;
         public int Order { get; set; } = order;
     }
 

@@ -53,6 +53,7 @@ namespace APlayer.StartPage
                     return;
                 selectedIndex = value;
                 NotifyPropertyChanged();
+                App.SavedContents.Index = selectedIndex;
             }
         }
 
@@ -118,6 +119,14 @@ namespace APlayer.StartPage
             if (e.AddedItems.FirstOrDefault() is SavedFolder add)
             {
                 add.Selected = true;
+                if (sender is ListView listView)
+                {
+                    int index = listView.Items.IndexOf(add);
+                    if (index == listView.Items.Count - 1)
+                        listView.ScrollIntoView(add,ScrollIntoViewAlignment.Leading);
+                    else
+                        listView.ScrollIntoView(add);
+                }
             }
             if (e.RemovedItems.FirstOrDefault() is SavedFolder rem)
             {
@@ -128,9 +137,26 @@ namespace APlayer.StartPage
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             if (TabFolderListItems.Count > 0)
-                SelectedIndex = 0;
+            {
+                SelectedIndex = Math.Clamp(App.SavedContents.Index, 0, TabFolderListItems.Count - 1);
+
+                var list = TabFolderListItems[SelectedIndex];
+                if (list.Folders.Count > 0)
+                {
+                    int index = Math.Clamp(App.SavedContents.FolderIndex, 0, list.Folders.Count - 1);
+//                    list.SelectedIndex = index;
+                    if (index > 0)
+                    {
+                        this.DispatcherQueue.TryEnqueue(() =>
+                        {
+                            list.SelectedIndex = index;
+                        });
+                    }
+                }
+            }
             App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
         }
+
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
@@ -480,6 +506,7 @@ namespace APlayer.StartPage
                     return;
                 selectedIndex = value;
                 NotifyPropertyChanged();
+                App.SavedContents.FolderIndex = selectedIndex;
             }
         }
 
