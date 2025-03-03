@@ -49,7 +49,8 @@ namespace APlayer
             Frame.GoBack();
         }
 
-        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased) e)
+        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {

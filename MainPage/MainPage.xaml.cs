@@ -61,9 +61,7 @@ namespace APlayer
             }
 
             App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
-            App.Gamepad.Main.TriggerButtonsChanged += Gamepad_TriggerButtonsChanged;
             App.Gamepad.Sub.ButtonsChanged += PlayerGamePad_ButtonsChanged;
-            App.Gamepad.Sub.TriggerButtonsChanged += PlayerGamePad_TriggerButtonsChanged;
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
@@ -81,9 +79,7 @@ namespace APlayer
             App.SoundPlayer.ResetPlayList();
 
             App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
-            App.Gamepad.Main.TriggerButtonsChanged -= Gamepad_TriggerButtonsChanged;
             App.Gamepad.Sub.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
-            App.Gamepad.Sub.TriggerButtonsChanged -= PlayerGamePad_TriggerButtonsChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
@@ -132,7 +128,8 @@ namespace APlayer
         }
 
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             if (sender is XInput.EventGenerator s)
             {
@@ -162,30 +159,10 @@ namespace APlayer
             }
         }
 
-        private void Gamepad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
-                {
-//                    TriggerOn = true;
-                }
-                if (e.released.HasFlag(XInput.EventGenerator.TriggerButtons.Left))
-                {
-//                    TriggerOn = false;
-                }
 
-            });
-        }
 
-        private void PlayerGamePad_TriggerButtonsChanged(object? sender, (XInput.EventGenerator.TriggerButtons pressed, XInput.EventGenerator.TriggerButtons released) e)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-            });
-        }
-
-        private void PlayerGamePad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        private void PlayerGamePad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {

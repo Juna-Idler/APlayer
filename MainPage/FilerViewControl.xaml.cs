@@ -87,7 +87,8 @@ namespace APlayer
         }
 
 
-        public void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased) e)
+        public void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {

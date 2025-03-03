@@ -164,7 +164,8 @@ namespace APlayer.StartPage
         }
 
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             if (SelectedIndex < 0)
                 return;
@@ -210,23 +211,6 @@ namespace APlayer.StartPage
                             SelectedFolderInvoke(folder);
                         }
                     }
-                }
-            });
-        }
-        private void Gamepad_LeftStickButtonsChanged(object? sender, (XInput.EventGenerator.StickButtons pressed, XInput.EventGenerator.StickButtons released) e)
-        {
-            App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag( XInput.EventGenerator.StickButtons.Left))
-                {
-                    
-                    if (SelectedIndex > 0)
-                        SelectedIndex--;
-                }
-                if (e.pressed.HasFlag(XInput.EventGenerator.StickButtons.Right))
-                {
-                    if (SelectedIndex < TabFolderListItems.Count - 1)
-                        SelectedIndex++;
                 }
             });
         }

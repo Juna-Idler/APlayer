@@ -87,7 +87,8 @@ namespace APlayer
             Initialized = true;
         }
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             CurrentFilerView?.OnGamepadButtonChanged(sender, e);
         }
@@ -243,7 +244,8 @@ namespace APlayer
             WindowFrame?.Navigate(typeof(StartPage.StartPage));
         }
 
-        private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons released) e)
+        private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
+            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
