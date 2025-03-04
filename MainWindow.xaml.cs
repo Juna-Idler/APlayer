@@ -213,7 +213,28 @@ namespace APlayer
             }
         }
 
+        private async void GamepadSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new ContentDialog()
+            {
+                XamlRoot = this.Content.XamlRoot,
+                Title = "Gamepad Assign",
+                PrimaryButtonText = "OK",
+                CloseButtonText = "Cancel"                ,
+                Content = new GamepadSettings(),
 
+            };
+
+            dialog.Resources["ContentDialogMaxWidth"] = 1080;
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+            }
+
+
+
+        }
     }
 
 }

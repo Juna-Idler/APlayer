@@ -28,41 +28,40 @@ namespace APlayer
 
         public TimeSpan Interval { get => Generator.Interval; set => Generator.Interval = value; }
 
+        public Assign NormalAssign { get; private set; } = NullAssign;
+        public Assign ShiftedAssign { get; private set; } = NullAssign;
+
+
         public void SetAssign(Assign normal,Assign shifted)
         {
-            CurrentAssign = normal;
+            NormalAssign = normal;
             ShiftedAssign = shifted;
             ShiftCount = 0;
         }
-        public void SetAssign(Assign normal)
+        public void SetAssign( Assign normal)
         {
             if (normal.ShiftButtons.Length > 0)
                 throw new InvalidOperationException();
-            CurrentAssign = normal;
+            NormalAssign = normal;
             ShiftedAssign = NullAssign;
             ShiftCount = 0;
         }
         public void ResetAssign()
         {
-            CurrentAssign = NullAssign;
+            NormalAssign = NullAssign;
             ShiftedAssign = NullAssign;
             ShiftCount = 0;
         }
 
 
-
-
-        public Assign CurrentAssign { get; private set; } = NullAssign;
-        public Assign ShiftedAssign { get; private set; } = NullAssign;
-
-        private static readonly Assign NullAssign = new();
+        private static readonly Assign NullAssign = new(typeof(void));
         private int ShiftCount = 0;
 
 
 
         private void Generator_ButtonsChanged(object? sender, (XInput.EventGenerator.Buttons pressed, XInput.EventGenerator.Buttons released) e)
         {
-            foreach (var button in CurrentAssign.ShiftButtons)
+            foreach (var button in NormalAssign.ShiftButtons)
             {
                 var b = (XInput.EventGenerator.Buttons)button;
                 if (e.pressed.HasFlag(b))
@@ -74,7 +73,7 @@ namespace APlayer
                         ShiftCount = 0;
                 }
             }
-            Assign assign = (ShiftCount > 0) ? ShiftedAssign : CurrentAssign;
+            Assign assign = (ShiftCount > 0) ? ShiftedAssign : NormalAssign;
 
             if (e.pressed.HasFlag(XInput.EventGenerator.Buttons.UP))
                 assign.Up.Invoke();
@@ -135,10 +134,12 @@ namespace APlayer
 
         }
 
-        public class Assign
+        public class Assign(Type source)
         {
             public static void NoAction() { }
             public static void Shift() { }
+
+            public Type SourceDataType { get; private set; } = source;
 
             public XInput.EventGenerator.Buttons[] ShiftButtons = [];
 
@@ -178,6 +179,8 @@ namespace APlayer
 
         public class AssignData<T> where T : struct, Enum
         {
+            public Type DataType {  get { return typeof(T); } }
+
             public delegate Action GetAction(T act);
 
             public Assign CreateAssign(GetAction getter)
@@ -235,7 +238,7 @@ namespace APlayer
                 }
                 public Assign Create(AssignData<T> data)
                 {
-                    return new Assign
+                    return new Assign(typeof(T))
                     {
                         Up = Assort(XInput.EventGenerator.Buttons.UP, data.Up),
                         Down = Assort(XInput.EventGenerator.Buttons.DOWN, data.Down),

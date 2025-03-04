@@ -102,7 +102,7 @@ namespace APlayer
         {
             return act switch
             {
-                GamepadAssign.MainPageGamepadAction.Shift => () => this.DispatcherQueue.TryEnqueue(Gamepad.Assign.Shift),
+                GamepadAssign.MainPageGamepadAction.Shift => Gamepad.Assign.Shift,
                 GamepadAssign.MainPageGamepadAction.Backward => () => this.DispatcherQueue.TryEnqueue(StepPrev),
                 GamepadAssign.MainPageGamepadAction.Forward => () => this.DispatcherQueue.TryEnqueue(StepNext),
                 GamepadAssign.MainPageGamepadAction.PlayPause => () => this.DispatcherQueue.TryEnqueue(PlayPause),

@@ -43,6 +43,7 @@
                         <ComboBoxItem Content="2"/>
                         <ComboBoxItem Content="3"/>
                     </ComboBox>
+                    <Button x:Name="GamepadSettings" Grid.Row="3" Content="Gamepad" Click="GamepadSettings_Click" />
                 </Grid>
 
             </Flyout>
