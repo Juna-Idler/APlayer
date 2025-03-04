@@ -154,65 +154,69 @@ namespace APlayer.StartPage
                     }
                 }
             }
-            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
         }
 
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
 
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        public void NextFolder()
         {
             if (SelectedIndex < 0)
                 return;
             var current = TabFolderListItems[SelectedIndex];
-            App.MainWindow?.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    if (current.SelectedIndex > 0)
-                        current.SelectedIndex--;
-                    else if (current.SelectedIndex == 0)
-                        current.SelectedIndex = current.Folders.Count - 1;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    if (current.SelectedIndex < current.Folders.Count - 1)
-                        current.SelectedIndex++;
-                    else if (current.SelectedIndex > 0)
-                        current.SelectedIndex = 0;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    if (SelectedIndex > 0)
-                        SelectedIndex--;
-                    else if (SelectedIndex == 0)
-                        SelectedIndex = TabFolderListItems.Count - 1;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                    if (SelectedIndex < TabFolderListItems.Count - 1)
-                        SelectedIndex++;
-                    else if (SelectedIndex > 0)
-                        SelectedIndex = 0;
-                }
+            if (current.Folders.Count == 0)
+                return;
+            if (current.SelectedIndex < current.Folders.Count - 1)
+                current.SelectedIndex++;
+            else
+                current.SelectedIndex = 0;
+        }
+        public void PrevFolder()
+        {
+            if (SelectedIndex < 0)
+                return;
+            var current = TabFolderListItems[SelectedIndex];
+            if (current.Folders.Count == 0)
+                return;
+            if (current.SelectedIndex > 0)
+                current.SelectedIndex--;
+            else
+                current.SelectedIndex = current.Folders.Count - 1;
 
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT) ||
-                    e.pressed.HasFlag(XInput.Buttons.A))
+        }
+        public void PrevTab()
+        {
+            if (TabFolderListItems.Count == 0)
+                return;
+            if (SelectedIndex > 0)
+                SelectedIndex--;
+            else
+                SelectedIndex = TabFolderListItems.Count - 1;
+        }
+        public void NextTab()
+        {
+            if (TabFolderListItems.Count == 0)
+                return;
+            if (SelectedIndex < TabFolderListItems.Count - 1)
+                SelectedIndex++;
+            else
+                SelectedIndex = 0;
+        }
+        public void Select()
+        {
+            if (SelectedIndex < 0)
+                return;
+            var current = TabFolderListItems[SelectedIndex];
+            if (current.SelectedIndex >= 0)
+            {
+                if (current.Folders[current.SelectedIndex] is SavedFolder folder)
                 {
-                    if (current.SelectedIndex >= 0)
-                    {
-                        if (current.Folders[current.SelectedIndex] is SavedFolder folder)
-                        {
-                            SelectedFolderInvoke(folder);
-                        }
-                    }
+                    SelectedFolderInvoke(folder);
                 }
-            });
+            }
         }
 
         private void RenameButton_Click(object sender, RoutedEventArgs e)

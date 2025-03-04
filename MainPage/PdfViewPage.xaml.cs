@@ -34,6 +34,8 @@ namespace APlayer
         const int GenericFail = unchecked((int)0x80004005);   // E_FAIL
 
 
+        public MainPage.GamepadActionDelegate Actions = new();
+
         private IStorageFile? File = null;
         private PdfDocument? pdfDocument = null;
 
@@ -51,13 +53,18 @@ namespace APlayer
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var (_, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
+            var (actions, folder, file) = ((MainPage.GamepadActionDelegate, List<FolderItem>, FolderItem))e.Parameter;
+            Actions = actions;
             File = file.Item as IStorageFile;
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged += OnGamepadButtonChanged;
+            Actions.Up = UpAction;
+            Actions.Down = DownAction;
+            Actions.Left = LeftAction;
+            Actions.Right = RightAction;
+            Actions.Select = SelectAction;
 
             try
             {
@@ -68,16 +75,16 @@ namespace APlayer
                 switch (ex.HResult)
                 {
                     case WrongPassword:
-//                        rootPage.NotifyUser("Document is password-protected and password is incorrect.", NotifyType.ErrorMessage);
+                        //                        rootPage.NotifyUser("Document is password-protected and password is incorrect.", NotifyType.ErrorMessage);
                         break;
 
                     case GenericFail:
-//                        rootPage.NotifyUser("Document is not a valid PDF.", NotifyType.ErrorMessage);
+                        //                        rootPage.NotifyUser("Document is not a valid PDF.", NotifyType.ErrorMessage);
                         break;
 
                     default:
                         // File I/O errors are reported as exceptions.
-//                        rootPage.NotifyUser(ex.Message, NotifyType.ErrorMessage);
+                        //                        rootPage.NotifyUser(ex.Message, NotifyType.ErrorMessage);
                         break;
                 }
             }
@@ -86,11 +93,11 @@ namespace APlayer
                 pageCount = pdfDocument.PageCount;
                 currentPageIndex = 0;
                 pageImages = new BitmapImage[pdfDocument.PageCount];
-                Output.Source = await GetPageImage(0,pdfDocument);
+                Output.Source = await GetPageImage(0, pdfDocument);
             }
         }
 
-        private async Task<BitmapImage> GetPageImage(uint index,PdfDocument pdf)
+        private async Task<BitmapImage> GetPageImage(uint index, PdfDocument pdf)
         {
             if (pageImages[index] != null)
                 return pageImages[index];
@@ -107,46 +114,40 @@ namespace APlayer
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged -= OnGamepadButtonChanged;
         }
 
-
-        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        public async void UpAction()
         {
-            this.DispatcherQueue.TryEnqueue(async () =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    if (currentPageIndex > 0)
-                        currentPageIndex--;
-                    else
-                        currentPageIndex = pageCount - 1;
-                    if (pdfDocument != null)
-                        Output.Source = await GetPageImage(currentPageIndex, pdfDocument);
+            if (currentPageIndex > 0)
+                currentPageIndex--;
+            else
+                currentPageIndex = pageCount - 1;
+            if (pdfDocument != null)
+                Output.Source = await GetPageImage(currentPageIndex, pdfDocument);
 
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    if (currentPageIndex < pageCount - 1)
-                        currentPageIndex++;
-                    else
-                        currentPageIndex = 0;
-                    if (pdfDocument != null)
-                        Output.Source = await GetPageImage(currentPageIndex, pdfDocument);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    Frame.GoBack();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                }
-            });
         }
+        public async void DownAction()
+        {
+            if (currentPageIndex < pageCount - 1)
+                currentPageIndex++;
+            else
+                currentPageIndex = 0;
+            if (pdfDocument != null)
+                Output.Source = await GetPageImage(currentPageIndex, pdfDocument);
+        }
+        public void LeftAction()
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
+        }
+        public void RightAction()
+        {
+        }
+        public void SelectAction()
+        {
+
+        }
+
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {

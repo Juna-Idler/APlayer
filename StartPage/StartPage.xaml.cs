@@ -153,6 +153,10 @@ namespace APlayer.StartPage
                 }
             }
             OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+
+
+            var assign = GamepadAssign.StartPageDefault.CreateAssign(GetAction);
+            App.Gamepad.SetAssign(assign);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -193,6 +197,23 @@ namespace APlayer.StartPage
                 }
             }
             OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+
+        }
+
+
+
+        private Action GetAction(GamepadAssign.StartPageGamepadAction act)
+        {
+            return act switch
+            {
+                GamepadAssign.StartPageGamepadAction.NextFolder => () => this.DispatcherQueue.TryEnqueue(TabFolderListControl.NextFolder),
+                GamepadAssign.StartPageGamepadAction.PrevFolder => () => this.DispatcherQueue.TryEnqueue(TabFolderListControl.PrevFolder),
+                GamepadAssign.StartPageGamepadAction.Select => () => this.DispatcherQueue.TryEnqueue(TabFolderListControl.Select),
+                GamepadAssign.StartPageGamepadAction.PrevTab => () => this.DispatcherQueue.TryEnqueue(TabFolderListControl.PrevTab),
+                GamepadAssign.StartPageGamepadAction.NextTab => () => this.DispatcherQueue.TryEnqueue(TabFolderListControl.NextTab),
+                _ => () => { },
+            };
+
 
         }
     }

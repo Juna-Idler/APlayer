@@ -26,75 +26,45 @@ namespace APlayer
     /// </summary>
     public sealed partial class TextViewPage : Page
     {
+        public MainPage.GamepadActionDelegate Actions = new();
+
         private IStorageFile? File = null;
 
         private readonly DispatcherTimer timer = new();
-        private double repeat_scroll = 0;
+//        private double repeat_scroll = 0;
         private ScrollingScrollOptions options = new( ScrollingAnimationMode.Auto );
 
-        const int repeat_scroll_amount = 240;
+//        const int repeat_scroll_amount = 240;
 
         public TextViewPage()
         {
             this.InitializeComponent();
-            timer.Interval = TimeSpan.FromSeconds(0.20);
-            timer.Tick += Timer_Tick;
+//            timer.Interval = TimeSpan.FromSeconds(0.20);
+//            timer.Tick += Timer_Tick;
         }
 
-        private void Timer_Tick(object? sender, object e)
-        {
-            ScrollView.ScrollBy(0, repeat_scroll,options);
-            repeat_scroll *= 1.1;
-        }
+//        private void Timer_Tick(object? sender, object e)
+//        {
+//            ScrollView.ScrollBy(0, repeat_scroll,options);
+//            repeat_scroll *= 1.1;
+//        }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var (_, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
+            var (actions, folder, file) = ((MainPage.GamepadActionDelegate, List<FolderItem>, FolderItem))e.Parameter;
+            Actions = actions;
             File = file.Item as IStorageFile;
         }
 
-        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed,XInput.EventGenerator.AnalogButtons a_released) e)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    ScrollView.ScrollBy(0, -120);
-                    repeat_scroll = -repeat_scroll_amount;
-                    timer.Start();
-                }
-                if (e.rereased.HasFlag(XInput.Buttons.UP))
-                {
-                    timer.Stop();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    ScrollView.ScrollBy(0, +120);
-                    repeat_scroll = repeat_scroll_amount;
-                    timer.Start();
-                }
-                if (e.rereased.HasFlag(XInput.Buttons.DOWN))
-                {
-                    timer.Stop();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    Frame.GoBack();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                }
-            });
-        }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged += OnGamepadButtonChanged;
+            Actions.Up = UpAction;
+            Actions.Down = DownAction;
+            Actions.Left = LeftAction;
+            Actions.Right = RightAction;
+            Actions.Select = SelectAction;
 
             if (File != null)
             {
@@ -119,9 +89,34 @@ namespace APlayer
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            timer.Stop();
-            App.Gamepad.Main.ButtonsChanged -= OnGamepadButtonChanged;
+//            timer.Stop();
         }
+        public void UpAction()
+        {
+            ScrollView.ScrollBy(0, -120);
+//            repeat_scroll = -repeat_scroll_amount;
+//            timer.Start();
+        }
+        public void DownAction()
+        {
+            ScrollView.ScrollBy(0, +120);
+//            repeat_scroll = repeat_scroll_amount;
+//            timer.Start();
+        }
+        public void LeftAction()
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
+        }
+        public void RightAction()
+        {
+        }
+        public void SelectAction()
+        {
+
+        }
+
+
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {

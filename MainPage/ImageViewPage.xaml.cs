@@ -25,6 +25,8 @@ namespace APlayer
     {
 
         private List<FolderItem> ImageList = [];
+        public MainPage.GamepadActionDelegate Actions = new();
+
 
         public ImageViewPage()
         {
@@ -36,7 +38,9 @@ namespace APlayer
         {
             base.OnNavigatedTo(e);
 
-            var (folder, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
+            var (actions, folder, file) = ((MainPage.GamepadActionDelegate, List<FolderItem>, FolderItem))e.Parameter;
+
+            Actions = actions;
 
             ImageList = new(folder.Where((item) => item.Type == FolderItem.ItemType.Image));
 
@@ -49,46 +53,44 @@ namespace APlayer
             Frame.GoBack();
         }
 
-        void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        public void UpAction()
         {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    if (FlipView.SelectedIndex > 0)
-                        FlipView.SelectedIndex--;
-                    else
-                        FlipView.SelectedIndex = ImageList.Count - 1;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    if (FlipView.SelectedIndex < ImageList.Count - 1)
-                        FlipView.SelectedIndex++;
-                    else
-                        FlipView.SelectedIndex = 0;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    Frame.GoBack();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                }
-            });
+            if (FlipView.SelectedIndex > 0)
+                FlipView.SelectedIndex--;
+            else
+                FlipView.SelectedIndex = ImageList.Count - 1;
+        }
+        public void DownAction()
+        {
+            if (FlipView.SelectedIndex < ImageList.Count - 1)
+                FlipView.SelectedIndex++;
+            else
+                FlipView.SelectedIndex = 0;
+        }
+        public void LeftAction()
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
+        }
+        public void RightAction()
+        {
+        }
+        public void SelectAction()
+        {
+
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged += OnGamepadButtonChanged;
+            Actions.Up = UpAction;
+            Actions.Down = DownAction;
+            Actions.Left = LeftAction;
+            Actions.Right = RightAction;
+            Actions.Select = SelectAction;
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged -= OnGamepadButtonChanged;
         }
     }
 }

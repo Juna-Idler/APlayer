@@ -39,6 +39,16 @@ namespace APlayer
         private readonly Flyout Flyout;
         private Frame? WindowFrame = null;
 
+        public class NavigationParameter(MainPage.GamepadActionDelegate actions,SaveData.List list,SaveData.Folder sd_folder,StorageFolder folder,Frame frame)
+        {
+            public MainPage.GamepadActionDelegate Actions = actions;
+            public SaveData.List List = list;
+            public SaveData.Folder SDFolder = sd_folder;
+            public StorageFolder Folder = folder;
+            public Frame Frame = frame;
+        }
+
+        private MainPage.GamepadActionDelegate Actions = new();
         private SaveData.Folder? SavedFolder = null;
         private SaveData.List? SavedList = null;
 
@@ -48,28 +58,34 @@ namespace APlayer
             this.InitializeComponent();
             Flyout = (Flyout)Resources["BackToSelector"];
         }
+
+        private void SetActions()
+        {
+            Actions.Up = () => CurrentFilerView?.UpAction();
+            Actions.Down = () => CurrentFilerView?.DownAction();
+            Actions.Left = () => CurrentFilerView?.LeftAction();
+            Actions.Right = () => CurrentFilerView?.RightAction();
+            Actions.Select = () => CurrentFilerView?.RightAction();
+        }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
-            if (Initialized)
-                return;
-
+            SetActions();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (Initialized)
                 return;
-            (SaveData.List list, SaveData.Folder sfolder, StorageFolder folder, Frame frame) = ((SaveData.List, SaveData.Folder, StorageFolder, Frame))e.Parameter;
-            SavedFolder = sfolder;
-            SavedList = list;
-
-            Folder = folder;
-            WindowFrame = frame;
+            NavigationParameter param = (NavigationParameter)e.Parameter;
+            Actions = param.Actions;
+            SavedFolder = param.SDFolder;
+            SavedList = param.List;
+            Folder = param.Folder;
+            WindowFrame = param.Frame;
 
             var fvc = new FilerViewControl(SavedList, SavedFolder, Folder, 0);
             fvc.RequestedBack += Fvc_RequestedBack;
@@ -87,12 +103,6 @@ namespace APlayer
             Initialized = true;
         }
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
-        {
-            CurrentFilerView?.OnGamepadButtonChanged(sender, e);
-        }
-
 
         private void Fvc_RequestedFile(object? sender, (List<FolderItem> folder, FolderItem file) e)
         {
@@ -100,28 +110,28 @@ namespace APlayer
             {
                 case FolderItem.ItemType.Audio:
                     {
-                        Frame.Navigate(typeof(PlaylistPage),e,
+                        Frame.Navigate(typeof(PlaylistPage),(Actions,e.folder,e.file),
                             new SlideNavigationTransitionInfo()
                             { Effect = SlideNavigationTransitionEffect.FromBottom });
                     }
                     break;
                 case FolderItem.ItemType.Image:
                     {
-                        Frame.Navigate(typeof(ImageViewPage), e,
+                        Frame.Navigate(typeof(ImageViewPage), (Actions, e.folder, e.file),
                             new SlideNavigationTransitionInfo()
                             { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
                 case FolderItem.ItemType.Text:
                     {
-                        Frame.Navigate(typeof(TextViewPage), e,
+                        Frame.Navigate(typeof(TextViewPage), (Actions, e.folder, e.file),
                             new SlideNavigationTransitionInfo()
                             { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
                 case FolderItem.ItemType.Pdf:
                     {
-                        Frame.Navigate(typeof(PdfViewPage), e,
+                        Frame.Navigate(typeof(PdfViewPage), (Actions, e.folder, e.file),
                             new SlideNavigationTransitionInfo()
                             { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
@@ -222,43 +232,28 @@ namespace APlayer
 
         private void Flyout_Opened(object sender, object e)
         {
-            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
-            App.Gamepad.Main.ButtonsChanged += OnFlyout_Gamepad_ButtonsChanged; 
+            Actions.Up = CloseFlyout;
+            Actions.Down = CloseFlyout;
+            Actions.Left = BackToStartPage;
+            Actions.Right = CloseFlyout;
+            Actions.Select = BackToStartPage;
+        }
+        private void CloseFlyout()
+        {
+            Flyout.Hide();
         }
 
-        private bool Terminating = false;
         private void Flyout_Closed(object sender, object e)
         {
-            if (Terminating)
-                Terminating = false;
-            else
-                App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
-
-            App.Gamepad.Main.ButtonsChanged -= OnFlyout_Gamepad_ButtonsChanged;
+            SetActions();
         }
 
         private void BackToStartPage()
         {
-            Terminating = true;
             Flyout.Hide();
             WindowFrame?.Navigate(typeof(StartPage.StartPage));
         }
 
-        private void OnFlyout_Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
-        {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    BackToStartPage();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                    Flyout.Hide();
-                }
-            });
-        }
 
         private void ApprovalButton_Click(object sender, RoutedEventArgs e)
         {
@@ -274,7 +269,6 @@ namespace APlayer
             }
         }
     }
-
 
 
     public class Crumb(FilerViewControl folder)

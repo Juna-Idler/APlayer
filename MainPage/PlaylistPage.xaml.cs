@@ -9,6 +9,7 @@ using Windows.Media.Audio;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Windows.Data.Pdf;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -24,6 +25,9 @@ namespace APlayer
 
         private List<IStorageFile> fileList = [];
         private int fileListIndex = 0;
+
+        public MainPage.GamepadActionDelegate Actions = new();
+
 
         public PlaylistPage()
         {
@@ -64,7 +68,8 @@ namespace APlayer
 
             if (e.Parameter != null)
             {
-                var (folder, file) = ((List<FolderItem> folder, FolderItem file))e.Parameter;
+                var (actions, folder, file) = ((MainPage.GamepadActionDelegate, List<FolderItem>, FolderItem))e.Parameter;
+                Actions = actions;
 
                 for (int i = 0; i < App.SoundPlayer.Playlist.Count; i++)
                 {
@@ -106,49 +111,47 @@ namespace APlayer
             PlaylistView.SelectedIndex = index;
             PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
-            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
+
+            Actions.Up = UpAction;
+            Actions.Down = DownAction;
+            Actions.Left = LeftAction;
+            Actions.Right = RightAction;
+            Actions.Select = SelectAction;
         }
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
-            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
         }
 
-
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        public void UpAction()
         {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    if (PlaylistView.SelectedIndex > 0)
-                        PlaylistView.SelectedIndex--;
-                    else
-                        PlaylistView.SelectedIndex = List.Count - 1;
-                    PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    if (PlaylistView.SelectedIndex < List.Count - 1)
-                        PlaylistView.SelectedIndex++;
-                    else
-                        PlaylistView.SelectedIndex = 0;
-                    PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    if (Frame.CanGoBack)
-                        Frame.GoBack();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                { }
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                    App.SoundPlayer.PlayIndex(PlaylistView.SelectedIndex);
-                }
-            });
+            if (PlaylistView.SelectedIndex > 0)
+                PlaylistView.SelectedIndex--;
+            else
+                PlaylistView.SelectedIndex = List.Count - 1;
+            PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
         }
+        public void DownAction()
+        {
+            if (PlaylistView.SelectedIndex < List.Count - 1)
+                PlaylistView.SelectedIndex++;
+            else
+                PlaylistView.SelectedIndex = 0;
+            PlaylistView.ScrollIntoView(PlaylistView.SelectedItem);
+        }
+        public void LeftAction()
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
+        }
+        public void RightAction()
+        {
+        }
+        public void SelectAction()
+        {
+            App.SoundPlayer.PlayIndex(PlaylistView.SelectedIndex);
+        }
+
 
         private void SoundPlayer_CurrentIndexChanged(object? sender, int e)
         {

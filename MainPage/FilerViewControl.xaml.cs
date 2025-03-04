@@ -87,47 +87,41 @@ namespace APlayer
         }
 
 
-        public void OnGamepadButtonChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        public void UpAction()
         {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    if (FolderListView.SelectedIndex > 0)
-                        FolderListView.SelectedIndex--;
-                    else
-                        FolderListView.SelectedIndex = Items.Count - 1;
-                    FolderListView.ScrollIntoView(FolderListView.SelectedItem);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    if (FolderListView.SelectedIndex < Items.Count - 1)
-                        FolderListView.SelectedIndex++;
-                    else
-                        FolderListView.SelectedIndex = 0;
-                    FolderListView.ScrollIntoView(FolderListView.SelectedItem);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    RequestedBack?.Invoke(this, ParentFolder);
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT) || e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                    if (FolderListView.SelectedItem != null)
-                    {
-                        var item = FolderListView.SelectedItem as FolderItem;
-                        if (item != null)
-                        {
-                            if (item.Type == FolderItem.ItemType.Folder)
-                                EnterFolder(item);
-                            else
-                                RequestedFile?.Invoke(this, (Items,item));
-                        }
-                    }
-                }
-            });
+            if (FolderListView.SelectedIndex > 0)
+                FolderListView.SelectedIndex--;
+            else
+                FolderListView.SelectedIndex = Items.Count - 1;
+            FolderListView.ScrollIntoView(FolderListView.SelectedItem);
         }
+        public void DownAction()
+        {
+            if (FolderListView.SelectedIndex < Items.Count - 1)
+                FolderListView.SelectedIndex++;
+            else
+                FolderListView.SelectedIndex = 0;
+            FolderListView.ScrollIntoView(FolderListView.SelectedItem);
+        }
+        public void LeftAction()
+        {
+            RequestedBack?.Invoke(this, ParentFolder);
+        }
+        public void RightAction()
+        {
+            if (FolderListView.SelectedItem != null)
+            {
+                var item = FolderListView.SelectedItem as FolderItem;
+                if (item != null)
+                {
+                    if (item.Type == FolderItem.ItemType.Folder)
+                        EnterFolder(item);
+                    else
+                        RequestedFile?.Invoke(this, (Items, item));
+                }
+            }
+        }
+
 
         private void Item_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {

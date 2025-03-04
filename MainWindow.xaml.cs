@@ -69,7 +69,7 @@ namespace APlayer
             {
                 BackdropList.SelectedIndex = 0;
             }
-            XInputUser.SelectedIndex = (int)App.Gamepad.Main.UserIndex;
+            XInputUser.SelectedIndex = (int)App.Gamepad.UserIndex;
 
             SetTitleBar(AppTitleBar);
             ExtendsContentIntoTitleBar = true;
@@ -164,7 +164,7 @@ namespace APlayer
         }
         private void XInputUser_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            App.Gamepad.ChangeUserIndex((uint)XInputUser.SelectedIndex);
+            App.Gamepad.UserIndex = (uint)XInputUser.SelectedIndex;
         }
 
         private void Window_Closed(object sender, WindowEventArgs args)
@@ -172,11 +172,11 @@ namespace APlayer
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
             var user = localSettings.Values["GamepadUserIndex"] as uint?;
-            if (user == null || user != App.Gamepad.Main.UserIndex)
-                localSettings.Values["GamepadUserIndex"] = App.Gamepad.Main.UserIndex;
+            if (user == null || user != App.Gamepad.UserIndex)
+                localSettings.Values["GamepadUserIndex"] = App.Gamepad.UserIndex;
             var interval = localSettings.Values["GamepadInterval"] as TimeSpan?;
-            if (interval == null || interval != App.Gamepad.Main.Interval)
-                localSettings.Values["GamepadInterval"] = App.Gamepad.Main.Interval;
+            if (interval == null || interval != App.Gamepad.Interval)
+                localSettings.Values["GamepadInterval"] = App.Gamepad.Interval;
 
             var theme = localSettings.Values["Theme"] as int?;
             if (theme == null || theme != ThemeList.SelectedIndex)

@@ -58,21 +58,37 @@ namespace APlayer
 
         public class EventGenerator
         {
-            public event EventHandler<(Buttons pressed,Buttons released, AnalogButtons a_pressed, AnalogButtons a_released)>? ButtonsChanged;
+            public event EventHandler<(Buttons pressed,Buttons released)>? ButtonsChanged;
 
             [Flags]
-            public enum AnalogButtons : ushort
+            public enum Buttons : ulong
             {
-                TriggerLeft = 1,
-                TriggerRight = 2,
-                LeftStickLeft = 4,
-                LeftStickRight = 8,
-                LeftStickUp = 16,
-                LeftStickDown = 32,
-                RightStickLeft = 64,
-                RightStickRight = 128,
-                RightStickUp = 256,
-                RightStickDown = 512,
+                UP = 0x0001,
+                DOWN = 0x0002,
+                LEFT = 0x0004,
+                RIGHT = 0x0008,
+                START = 0x0010,
+                BACK = 0x0020,
+                THUMB_LEFT = 0x0040,
+                THUMB_RIGHT = 0x0080,
+                SHOULDER_LEFT = 0x0100,
+                SHOULDER_RIGHT = 0x0200,
+                A = 0x1000,
+                B = 0x2000,
+                X = 0x4000,
+                Y = 0x8000,
+
+
+                TriggerLeft = 1 << 16,
+                TriggerRight = 2 << 16,
+                LeftStickLeft = 4 << 16,
+                LeftStickRight = 8 << 16,
+                LeftStickUp = 16 << 16,
+                LeftStickDown = 32 << 16,
+                RightStickLeft = 64 << 16,
+                RightStickRight = 128 << 16,
+                RightStickUp = 256 << 16,
+                RightStickDown = 512 << 16,
             }
 
             public byte TriggerButtonThreshold { get; set; } = 128;
@@ -83,7 +99,7 @@ namespace APlayer
 
             public STATE State;
             public STATE LastState { get; private set; }
-            private AnalogButtons last_analog_button_state = 0;
+            private Buttons last_analog_button_state = 0;
 
             public void CopyLastStateFrom(EventGenerator from)
             {
@@ -103,9 +119,9 @@ namespace APlayer
             {
                 XInputGetState(UserIndex, ref State);
 
-                AnalogButtons analog_button_changed = 0;
-                AnalogButtons a_pressed = 0;
-                AnalogButtons a_released = 0;
+                Buttons analog_button_changed = 0;
+                Buttons a_pressed = 0;
+                Buttons a_released = 0;
                 if ((LastState.Gamepad.bLeftTrigger != State.Gamepad.bLeftTrigger) ||
                     (LastState.Gamepad.bRightTrigger != State.Gamepad.bRightTrigger) ||
                     (LastState.Gamepad.sThumbLY != State.Gamepad.sThumbLY) ||
@@ -124,12 +140,12 @@ namespace APlayer
                     bool right_up = State.Gamepad.sThumbRY >= StickButtonThreshold;
                     bool right_down = State.Gamepad.sThumbRY < -StickButtonThreshold;
 
-                    AnalogButtons analog_button_state =
-                        (left_trigger ? AnalogButtons.TriggerLeft : 0) | (right_trigger ? AnalogButtons.TriggerRight : 0) |
-                        (left_left ? AnalogButtons.LeftStickLeft : 0) | (left_right ? AnalogButtons.LeftStickRight : 0) |
-                        (left_up ? AnalogButtons.LeftStickUp : 0) | (left_down ? AnalogButtons.LeftStickDown : 0) |
-                        (right_left ? AnalogButtons.RightStickLeft : 0) | (right_right ? AnalogButtons.RightStickRight : 0) |
-                        (right_up ? AnalogButtons.RightStickUp : 0) | (right_down ? AnalogButtons.RightStickDown : 0);
+                    Buttons analog_button_state =
+                        (left_trigger ? Buttons.TriggerLeft : 0) | (right_trigger ? Buttons.TriggerRight : 0) |
+                        (left_left ? Buttons.LeftStickLeft : 0) | (left_right ? Buttons.LeftStickRight : 0) |
+                        (left_up ? Buttons.LeftStickUp : 0) | (left_down ? Buttons.LeftStickDown : 0) |
+                        (right_left ? Buttons.RightStickLeft : 0) | (right_right ? Buttons.RightStickRight : 0) |
+                        (right_up ? Buttons.RightStickUp : 0) | (right_down ? Buttons.RightStickDown : 0);
 
                     analog_button_changed = analog_button_state ^ last_analog_button_state;
                     a_pressed = analog_button_changed & analog_button_state;
@@ -137,13 +153,14 @@ namespace APlayer
                     last_analog_button_state = analog_button_state;
                 }
 
-                Buttons button_changed = (State.Gamepad.wButtons ^ LastState.Gamepad.wButtons);
+                XInput.Buttons button_changed = (State.Gamepad.wButtons ^ LastState.Gamepad.wButtons);
 
                 if (button_changed != 0 || analog_button_changed != 0)
                 {
-                    Buttons pressed = button_changed & State.Gamepad.wButtons;
-                    Buttons rereased = button_changed & LastState.Gamepad.wButtons;
-                    ButtonsChanged?.Invoke(this, (pressed, rereased,a_pressed,a_released));
+                    XInput.Buttons pressed = button_changed & State.Gamepad.wButtons;
+                    XInput.Buttons rereased = button_changed & LastState.Gamepad.wButtons;
+                    
+                    ButtonsChanged?.Invoke(this, ((Buttons)(ulong)pressed | a_pressed, (Buttons)(ulong)rereased | a_released ));
                 }
                 LastState = State;
             }

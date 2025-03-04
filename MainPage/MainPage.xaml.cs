@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+﻿using APlayer.SaveData;
+using APlayer.StartPage;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
@@ -23,18 +25,27 @@ namespace APlayer
         const double GainMax = 10;
         const double GainMin = -40;
 
-        private DispatcherTimer Timer = new();
-
+        private readonly DispatcherTimer Timer = new();
 
         PlayerViewModel viewModel { get; set; } = new PlayerViewModel();
 
         private SaveData.Folder? SavedFolder = null;
         private SaveData.List? SavedList = null;
 
+        public class GamepadActionDelegate
+        {
+            public Action Up { get; set; } = Gamepad.Assign.NoAction;
+            public Action Down { get; set; } = Gamepad.Assign.NoAction;
+            public Action Left { get; set; } = Gamepad.Assign.NoAction;
+            public Action Right { get; set; } = Gamepad.Assign.NoAction;
+            public Action Select { get; set; } = Gamepad.Assign.NoAction;
+        }
+
+        private GamepadActionDelegate GamepadActions { get; set; } = new();
+
         private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
         private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
 
-//        private bool TriggerOn = false;
 
         public MainPage()
         {
@@ -54,14 +65,15 @@ namespace APlayer
         }
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            if (SavedFolder != null)
+            if (SavedFolder != null && SavedList != null)
             {
                 var folder = await StorageFolder.GetFolderFromPathAsync(SavedFolder.Path);
-                MainFrame.Navigate(typeof(FilerPage), (SavedList,SavedFolder, folder, Frame));
+                MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions,SavedList,SavedFolder, folder, Frame));
             }
 
-            App.Gamepad.Main.ButtonsChanged += Gamepad_ButtonsChanged;
-            App.Gamepad.Sub.ButtonsChanged += PlayerGamePad_ButtonsChanged;
+            var assign = GamepadAssign.MainPageDefault.CreateAssign(GetGamepadAction);
+            var shifted_assign = GamepadAssign.MainPageDefaultShift.CreateAssign(GetGamepadAction);
+            App.Gamepad.SetAssign(assign,shifted_assign);
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
@@ -78,14 +90,56 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
-            App.Gamepad.Main.ButtonsChanged -= Gamepad_ButtonsChanged;
-            App.Gamepad.Sub.ButtonsChanged -= PlayerGamePad_ButtonsChanged; ;
+            App.Gamepad.ResetAssign();
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
             App.SoundPlayer.FrameReported -= SoundPlayer_PeakReported;
         }
+
+        private Action GetGamepadAction(GamepadAssign.MainPageGamepadAction act)
+        {
+            return act switch
+            {
+                GamepadAssign.MainPageGamepadAction.Shift => () => this.DispatcherQueue.TryEnqueue(Gamepad.Assign.Shift),
+                GamepadAssign.MainPageGamepadAction.Backward => () => this.DispatcherQueue.TryEnqueue(StepPrev),
+                GamepadAssign.MainPageGamepadAction.Forward => () => this.DispatcherQueue.TryEnqueue(StepNext),
+                GamepadAssign.MainPageGamepadAction.PlayPause => () => this.DispatcherQueue.TryEnqueue(PlayPause),
+                GamepadAssign.MainPageGamepadAction.GainUp => () => this.DispatcherQueue.TryEnqueue(GainUp),
+                GamepadAssign.MainPageGamepadAction.GainDown => () => this.DispatcherQueue.TryEnqueue(GainDown),
+                GamepadAssign.MainPageGamepadAction.Up => () => this.DispatcherQueue.TryEnqueue(ActionUp),
+                GamepadAssign.MainPageGamepadAction.Down => () => this.DispatcherQueue.TryEnqueue(ActionDown),
+                GamepadAssign.MainPageGamepadAction.Left => () => this.DispatcherQueue.TryEnqueue(ActionLeft),
+                GamepadAssign.MainPageGamepadAction.Right => () => this.DispatcherQueue.TryEnqueue(ActionRight),
+                GamepadAssign.MainPageGamepadAction.Select => () => this.DispatcherQueue.TryEnqueue(ActionSelect),
+                _ => () => { }
+                ,
+            };
+        }
+        private void ActionUp()
+        {
+            GamepadActions.Up.Invoke();
+        }
+        private void ActionDown()
+        {
+            GamepadActions.Down.Invoke();
+        }
+        private void ActionLeft()
+        {
+            GamepadActions.Left.Invoke();
+        }
+        private void ActionRight()
+        {
+            GamepadActions.Right.Invoke();
+        }
+        private void ActionSelect()
+        {
+            GamepadActions.Select.Invoke();
+        }
+
+
+
 
         private void SoundPlayer_PeakReported(object? sender, float[] e)
         {
@@ -128,90 +182,19 @@ namespace APlayer
         }
 
 
-        private void Gamepad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        private void GainUp()
         {
-            if (sender is XInput.EventGenerator s)
-            {
-                this.DispatcherQueue.TryEnqueue(() =>
-                {
-                    if (e.pressed.HasFlag(XInput.Buttons.BACK))
-                    {
-                        App.Gamepad.Sub.CopyLastStateFrom(s);
-                        App.Gamepad.Main.Stop();
-                        App.Gamepad.Sub.Start();
-                        Player.Style = (Style)this.Resources["Controlled"];
-                    }
-                    if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
-                    {
-                        if (MainFrame.SourcePageType != typeof(PlaylistPage))
-                        {
-                            MainFrame.Navigate(typeof(PlaylistPage));
-                        }
-                        else
-                        {
-                            if (MainFrame.CanGoBack)
-                                MainFrame.GoBack();
-                        }
-
-                    }
-                });
-            }
+            double db = ToDecibel(App.SoundPlayer.OutputGain);
+            db = Math.Clamp(db + 1, GainMin, GainMax);
+            App.SoundPlayer.OutputGain = FromDecibel(db);
+            viewModel.Volume = db;
         }
-
-
-
-        private void PlayerGamePad_ButtonsChanged(object? sender, (XInput.Buttons pressed, XInput.Buttons rereased,
-            XInput.EventGenerator.AnalogButtons a_pressed, XInput.EventGenerator.AnalogButtons a_released) e)
+        private void GainDown()
         {
-            this.DispatcherQueue.TryEnqueue(() =>
-            {
-                if (e.pressed.HasFlag(XInput.Buttons.UP))
-                {
-                    double db = ToDecibel(App.SoundPlayer.OutputGain);
-                    db = Math.Clamp(db + 1, GainMin, GainMax);
-                    App.SoundPlayer.OutputGain = FromDecibel(db);
-                    viewModel.Volume = db;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.DOWN))
-                {
-                    double db = ToDecibel(App.SoundPlayer.OutputGain);
-                    db = Math.Clamp(db - 1, GainMin, GainMax);
-                    App.SoundPlayer.OutputGain = FromDecibel(db);
-                    viewModel.Volume = db;
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.LEFT))
-                {
-                    StepPrev();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.RIGHT))
-                {
-                    StepNext();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.SHOULDER_LEFT))
-                {
-                    PlayPause();
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.BACK))
-                {
-                    App.Gamepad.SwitchToMain();
-                    Player.Style = (Style)this.Resources["Uncontrolled"];
-                }
-                if (e.pressed.HasFlag(XInput.Buttons.THUMB_LEFT))
-                {
-                    if (MainFrame.SourcePageType != typeof(PlaylistPage))
-                    {
-                        App.Gamepad.SwitchToMain();
-                        Player.Style = (Style)this.Resources["Uncontrolled"];
-                        MainFrame.Navigate(typeof(PlaylistPage));
-                    }
-                    else
-                    {
-                        if (MainFrame.CanGoBack)
-                            MainFrame.GoBack();
-                    }
-                }
-            });
+            double db = ToDecibel(App.SoundPlayer.OutputGain);
+            db = Math.Clamp(db - 1, GainMin, GainMax);
+            App.SoundPlayer.OutputGain = FromDecibel(db);
+            viewModel.Volume = db;
         }
 
 
@@ -370,20 +353,10 @@ namespace APlayer
         {
             if (MainFrame.SourcePageType != typeof(PlaylistPage))
             {
-                if (App.Gamepad.IsSubPolling)
-                {
-                    App.Gamepad.SwitchToMain();
-                    Player.Style = (Style)this.Resources["Uncontrolled"];
-                }
                 MainFrame.Navigate(typeof(PlaylistPage));
             }
             else
             {
-                if (App.Gamepad.IsSubPolling)
-                {
-                    App.Gamepad.SwitchToMain();
-                    Player.Style = (Style)this.Resources["Uncontrolled"];
-                }
                 if (MainFrame.CanGoBack)
                     MainFrame.GoBack();
             }
