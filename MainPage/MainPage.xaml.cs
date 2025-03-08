@@ -125,6 +125,7 @@ namespace APlayer
                 GamepadAssign.MainPageGamepadAction.Left => () => this.DispatcherQueue.TryEnqueue(ActionLeft),
                 GamepadAssign.MainPageGamepadAction.Right => () => this.DispatcherQueue.TryEnqueue(ActionRight),
                 GamepadAssign.MainPageGamepadAction.Select => () => this.DispatcherQueue.TryEnqueue(ActionSelect),
+                GamepadAssign.MainPageGamepadAction.Playlist => () => this.DispatcherQueue.TryEnqueue(SwitchPlaylist),
                 _ => () => { }
                 ,
             };
@@ -362,6 +363,11 @@ namespace APlayer
         }
 
         private void PlaylistButton_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchPlaylist();
+        }
+
+        private void SwitchPlaylist()
         {
             if (MainFrame.SourcePageType != typeof(PlaylistPage))
             {

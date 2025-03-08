@@ -17,6 +17,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -24,26 +25,30 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+                    
                     <TextBlock Text="Theme" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" />
                     <ComboBox x:Name="ThemeList" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="ThemeList_SelectionChanged">
                         <x:String>Default</x:String>
                         <x:String>Light</x:String>
                         <x:String>Dark</x:String>
                     </ComboBox>
+                    
                     <TextBlock Text="Backdrop" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" />
                     <ComboBox x:Name="BackdropList" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="Backdrop_SelectionChanged">
                         <x:String>Mica</x:String>
                         <x:String>Mica Alt</x:String>
                         <x:String>Acrylic</x:String>
                     </ComboBox>
-                    <TextBlock Text="XInput User Index" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="XInputUser" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="XInputUser_SelectionChanged">
+                    
+                    <TextBlock Text="XInput User Index" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="XInputUser" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="XInputUser_SelectionChanged">
                         <ComboBoxItem Content="0"/>
                         <ComboBoxItem Content="1"/>
                         <ComboBoxItem Content="2"/>
                         <ComboBoxItem Content="3"/>
                     </ComboBox>
-                    <Button x:Name="GamepadSettings" Grid.Row="3" Content="Gamepad" Click="GamepadSettings_Click" />
+                    
+                    <Button x:Name="GamepadSettings" Grid.Row="4" Grid.ColumnSpan="2" Content="Gamepad Assign" Click="GamepadSettings_Click" HorizontalAlignment="Center" />
                 </Grid>
 
             </Flyout>

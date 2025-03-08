@@ -43,6 +43,8 @@ namespace APlayer.SaveData
             Left,
             Right,
             Select,
+
+            Playlist,
         }
 
         public class SaveData
@@ -119,6 +121,12 @@ namespace APlayer.SaveData
             Right = MainPageGamepadAction.Right,
             ShoulderLeft = MainPageGamepadAction.Select,
             A = MainPageGamepadAction.Select,
+            LeftStickUp = MainPageGamepadAction.GainUp,
+            LeftStickDown = MainPageGamepadAction.GainDown,
+            LeftStickLeft = MainPageGamepadAction.Backward,
+            LeftStickRight = MainPageGamepadAction.Forward,
+            ThumbLeft = MainPageGamepadAction.PlayPause,
+            Back = MainPageGamepadAction.Playlist,
 
         };
         public static readonly Gamepad.AssignData<MainPageGamepadAction> MainPageDefaultShift = new()
