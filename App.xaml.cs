@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using APlayer.SaveData;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -53,7 +55,7 @@ namespace APlayer
 
         public static Gamepad Gamepad { get; private set; }
 
-        private static SoundPlayer soundPlayer { get; set; } = new();
+        private static SoundPlayer soundPlayer = new();
         public static ISoundPlayer SoundPlayer { get => soundPlayer; }
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
@@ -61,6 +63,15 @@ namespace APlayer
         public static Dictionary<string,SaveData.List> SavedLists { get; private set; } = [];
         public static List<string> DeleteLists { get; private set; } = [];
         public static SaveData.List? CurrentList { get; set; } = null;
+
+        public static SaveData.GamepadAssign.SaveData AssignData { get; private set; } = new();
+
+        public static void SetAssignData(SaveData.GamepadAssign.SaveData data,Type lastDataType)
+        {
+            AssignData = data;
+            AssignDataChanged?.Invoke(null, lastDataType);
+        }
+        public static event EventHandler<Type>? AssignDataChanged;
 
         /// <summary>
         /// Invoked when the application is launched.
@@ -70,6 +81,10 @@ namespace APlayer
         {
             var local_folder = Windows.Storage.ApplicationData.Current.LocalFolder;
             SaveFolder = await local_folder.CreateFolderAsync("SaveData", Windows.Storage.CreationCollisionOption.OpenIfExists);
+
+            var assign_data = await GamepadAssign.Load(SaveFolder);
+            AssignData = assign_data;
+
             var contents = await SaveData.SaveData.LoadContents(SaveFolder, "index.json");
             if (contents != null)
             {

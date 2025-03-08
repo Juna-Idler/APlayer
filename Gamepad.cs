@@ -28,13 +28,13 @@ namespace APlayer
 
         public TimeSpan Interval { get => Generator.Interval; set => Generator.Interval = value; }
 
-        public Assign NormalAssign { get; private set; } = NullAssign;
+        public Assign PrimaryAssign { get; private set; } = NullAssign;
         public Assign ShiftedAssign { get; private set; } = NullAssign;
 
 
         public void SetAssign(Assign normal,Assign shifted)
         {
-            NormalAssign = normal;
+            PrimaryAssign = normal;
             ShiftedAssign = shifted;
             ShiftCount = 0;
         }
@@ -42,13 +42,13 @@ namespace APlayer
         {
             if (normal.ShiftButtons.Length > 0)
                 throw new InvalidOperationException();
-            NormalAssign = normal;
+            PrimaryAssign = normal;
             ShiftedAssign = NullAssign;
             ShiftCount = 0;
         }
         public void ResetAssign()
         {
-            NormalAssign = NullAssign;
+            PrimaryAssign = NullAssign;
             ShiftedAssign = NullAssign;
             ShiftCount = 0;
         }
@@ -61,7 +61,7 @@ namespace APlayer
 
         private void Generator_ButtonsChanged(object? sender, (XInput.EventGenerator.Buttons pressed, XInput.EventGenerator.Buttons released) e)
         {
-            foreach (var button in NormalAssign.ShiftButtons)
+            foreach (var button in PrimaryAssign.ShiftButtons)
             {
                 var b = (XInput.EventGenerator.Buttons)button;
                 if (e.pressed.HasFlag(b))
@@ -73,7 +73,7 @@ namespace APlayer
                         ShiftCount = 0;
                 }
             }
-            Assign assign = (ShiftCount > 0) ? ShiftedAssign : NormalAssign;
+            Assign assign = (ShiftCount > 0) ? ShiftedAssign : PrimaryAssign;
 
             if (e.pressed.HasFlag(XInput.EventGenerator.Buttons.UP))
                 assign.Up.Invoke();
@@ -179,8 +179,6 @@ namespace APlayer
 
         public class AssignData<T> where T : struct, Enum
         {
-            public Type DataType {  get { return typeof(T); } }
-
             public delegate Action GetAction(T act);
 
             public Assign CreateAssign(GetAction getter)

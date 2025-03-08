@@ -9,105 +9,261 @@
     mc:Ignorable="d"
     Background="Transparent">
 
-    <Grid Margin="4,16" ColumnSpacing="4">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="8" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="16"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="16"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="16"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <TabView x:Name="TabView" IsAddTabButtonVisible="False">
 
-        <FontIcon  Glyph="&#xf10a;" Grid.Row="0" Grid.Column="1" />
-        <FontIcon  Glyph="&#xf10c;" Grid.Row="1" Grid.Column="1" />
+        <TabViewItem Header="StartPage" IsClosable="False">
+            <TabViewItem.Content>
+                <Grid Margin="4,16" ColumnSpacing="4" RowSpacing="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="8" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <FontIcon  Glyph="&#xf10e;" Grid.Row="3" Grid.RowSpan="4" Grid.Column="0"/>
-        <FontIcon  Glyph="&#xf0ad;" Grid.Row="3" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0b0;" Grid.Row="4" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0af;" Grid.Row="5" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0ae;" Grid.Row="6" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf10a;" Grid.Row="0" Grid.Column="1" />
+                    <FontIcon  Glyph="&#xf10c;" Grid.Row="1" Grid.Column="1" />
 
-        <FontIcon  Glyph="&#xf08d;" Grid.Row="8" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf10e;" Grid.Row="3" Grid.RowSpan="4" Grid.Column="0"/>
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="3" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="4" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="5" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="6" Grid.Column="1"/>
 
-        <FontIcon  Glyph="&#xf108;" Grid.Row="10" Grid.Column="1" />
-        <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="1"/>
-        <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf08d;" Grid.Row="8" Grid.Column="1"/>
 
-
-        <FontIcon  Glyph="&#xf10b;" Grid.Row="0" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf10d;" Grid.Row="1" Grid.Column="4"/>
-
-        <FontIcon  Glyph="&#xf095;" Grid.Row="3" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf096;" Grid.Row="4" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf094;" Grid.Row="5" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf093;" Grid.Row="6" Grid.Column="4"/>
-
-        <FontIcon  Glyph="&#xf08f;" Grid.Row="8" Grid.Column="4" />
-
-        <FontIcon  Glyph="&#xf109;" Grid.Row="10" Grid.Column="4" />
-        <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="4"/>
-        <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf108;" Grid.Row="10" Grid.Column="1" />
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="1"/>
 
 
-        <ComboBox Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <FontIcon  Glyph="&#xf10b;" Grid.Row="0" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf10d;" Grid.Row="1" Grid.Column="4"/>
 
-        <ComboBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="1" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <FontIcon  Glyph="&#xf095;" Grid.Row="3" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf096;" Grid.Row="4" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf094;" Grid.Row="5" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf093;" Grid.Row="6" Grid.Column="4"/>
 
-        <ComboBox Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <FontIcon  Glyph="&#xf08f;" Grid.Row="8" Grid.Column="4" />
 
-        <ComboBox Grid.Row="4" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="4" Grid.Column="3" HorizontalAlignment="Stretch" />
-
-        <ComboBox Grid.Row="5" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="5" Grid.Column="3" HorizontalAlignment="Stretch" />
-
-        <ComboBox Grid.Row="6" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="6" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <FontIcon  Glyph="&#xf109;" Grid.Row="10" Grid.Column="4" />
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="4"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="4"/>
 
 
-        <ComboBox Grid.Row="8" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="8" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_LT" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RT" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_LB" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RB" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_D_Up" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_Y" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_D_Left" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_X" Grid.Row="4" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_D_Right" Grid.Row="5" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_B" Grid.Row="5" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_D_Down" Grid.Row="6" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_A" Grid.Row="6" Grid.Column="3" HorizontalAlignment="Stretch" />
 
 
-        <ComboBox Grid.Row="10" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="10" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_Back" Grid.Row="8" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_Start" Grid.Row="8" Grid.Column="3" HorizontalAlignment="Stretch" />
 
-        <ComboBox Grid.Row="11" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="11" Grid.Column="3" HorizontalAlignment="Stretch" />
 
-        <ComboBox Grid.Row="12" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="12" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_LS_Button" Grid.Row="10" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RS_Button" Grid.Row="10" Grid.Column="3" HorizontalAlignment="Stretch" />
 
-        <ComboBox Grid.Row="13" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="13" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_LS_Up" Grid.Row="11" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RS_Up" Grid.Row="11" Grid.Column="3" HorizontalAlignment="Stretch" />
 
-        <ComboBox Grid.Row="14" Grid.Column="2" HorizontalAlignment="Stretch" />
-        <ComboBox Grid.Row="14" Grid.Column="3" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_LS_Left" Grid.Row="12" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RS_Left" Grid.Row="12" Grid.Column="3" HorizontalAlignment="Stretch" />
 
-    </Grid>
+                    <ComboBox x:Name="SP_LS_Right" Grid.Row="13" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RS_Right" Grid.Row="13" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="SP_LS_Down" Grid.Row="14" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="SP_RS_Down" Grid.Row="14" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                </Grid>
+            </TabViewItem.Content>
+        </TabViewItem>
+
+        <TabViewItem Header="MainPage" IsClosable="False">
+            <TabViewItem.Content>
+                <Grid Margin="4,16" ColumnSpacing="4" RowSpacing="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="8" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <FontIcon  Glyph="&#xf10a;" Grid.Row="0" Grid.Column="1" />
+                    <FontIcon  Glyph="&#xf10c;" Grid.Row="1" Grid.Column="1" />
+
+                    <FontIcon  Glyph="&#xf10e;" Grid.Row="3" Grid.RowSpan="4" Grid.Column="0"/>
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="3" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="4" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="5" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="6" Grid.Column="1"/>
+
+                    <FontIcon  Glyph="&#xf08d;" Grid.Row="8" Grid.Column="1"/>
+
+                    <FontIcon  Glyph="&#xf108;" Grid.Row="10" Grid.Column="1" />
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="1"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="1"/>
+
+                    <ComboBox x:Name="MPP_LT" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LT" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_LB"  Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LB"  Grid.Row="1" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_D_Up"  Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_D_Up"  Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_D_Left"  Grid.Row="4" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_D_Left" Grid.Row="4" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_D_Right" Grid.Row="5" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_D_Right" Grid.Row="5" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_D_Down" Grid.Row="6" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_D_Down" Grid.Row="6" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+
+                    <ComboBox x:Name="MPP_Back" Grid.Row="8" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_Back" Grid.Row="8" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+
+                    <ComboBox x:Name="MPP_LS_Button" Grid.Row="10" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LS_Button" Grid.Row="10" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_LS_Up" Grid.Row="11" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LS_Up" Grid.Row="11" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_LS_Left" Grid.Row="12" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LS_Left" Grid.Row="12" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_LS_Right" Grid.Row="13" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LS_Right" Grid.Row="13" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_LS_Down" Grid.Row="14" Grid.Column="2" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_LS_Down" Grid.Row="14" Grid.Column="3" HorizontalAlignment="Stretch" />
+
+
+                     <FontIcon  Glyph="&#xf10b;" Grid.Row="0" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf10d;" Grid.Row="1" Grid.Column="6"/>
+
+                    <FontIcon  Glyph="&#xf095;" Grid.Row="3" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf096;" Grid.Row="4" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf094;" Grid.Row="5" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf093;" Grid.Row="6" Grid.Column="6"/>
+
+                    <FontIcon  Glyph="&#xf08f;" Grid.Row="8" Grid.Column="6" />
+
+                    <FontIcon  Glyph="&#xf109;" Grid.Row="10" Grid.Column="6" />
+                    <FontIcon  Glyph="&#xf0ad;" Grid.Row="11" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf0b0;" Grid.Row="12" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf0af;" Grid.Row="13" Grid.Column="6"/>
+                    <FontIcon  Glyph="&#xf0ae;" Grid.Row="14" Grid.Column="6"/>
+
+
+
+                    <ComboBox x:Name="MPP_RT" Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RT" Grid.Row="0" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_RB" Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RB" Grid.Row="1" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_Y" Grid.Row="3" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_Y" Grid.Row="3" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_X" Grid.Row="4" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_X" Grid.Row="4" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_B" Grid.Row="5" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_B" Grid.Row="5" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_A" Grid.Row="6" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_A" Grid.Row="6" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+
+                    <ComboBox x:Name="MPP_Start" Grid.Row="8" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_Start" Grid.Row="8" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+
+                    <ComboBox x:Name="MPP_RS_Button" Grid.Row="10" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RS_Button" Grid.Row="10" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_RS_Up" Grid.Row="11" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RS_Up" Grid.Row="11" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_RS_Left" Grid.Row="12" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RS_Left" Grid.Row="12" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_RS_Right" Grid.Row="13" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RS_Right" Grid.Row="13" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+                    <ComboBox x:Name="MPP_RS_Down" Grid.Row="14" Grid.Column="4" HorizontalAlignment="Stretch" />
+                    <ComboBox x:Name="MPS_RS_Down" Grid.Row="14" Grid.Column="5" HorizontalAlignment="Stretch" />
+
+
+                </Grid>
+            </TabViewItem.Content>
+        </TabViewItem>
+
+    </TabView>
 </Page>

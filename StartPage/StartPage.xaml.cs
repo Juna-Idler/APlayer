@@ -155,9 +155,20 @@ namespace APlayer.StartPage
             OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
 
 
-            var assign = GamepadAssign.StartPageDefault.CreateAssign(GetAction);
+            var assign = App.AssignData.StartPage.CreateAssign(GetAction);
             App.Gamepad.SetAssign(assign);
+            App.AssignDataChanged += App_AssignDataChanged;
         }
+
+        private void App_AssignDataChanged(object? sender, Type e)
+        {
+            if (e == typeof(GamepadAssign.StartPageGamepadAction))
+            {
+                var assign = App.AssignData.StartPage.CreateAssign(GetAction);
+                App.Gamepad.SetAssign(assign);
+            }
+        }
+
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {

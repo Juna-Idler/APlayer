@@ -71,9 +71,10 @@ namespace APlayer
                 MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions,SavedList,SavedFolder, folder, Frame));
             }
 
-            var assign = GamepadAssign.MainPageDefault.CreateAssign(GetGamepadAction);
-            var shifted_assign = GamepadAssign.MainPageDefaultShift.CreateAssign(GetGamepadAction);
+            var assign = App.AssignData.MainPage.CreateAssign(GetGamepadAction);
+            var shifted_assign = App.AssignData.MainPageShift.CreateAssign(GetGamepadAction);
             App.Gamepad.SetAssign(assign,shifted_assign);
+            App.AssignDataChanged += App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
@@ -81,8 +82,18 @@ namespace APlayer
             App.SoundPlayer.FrameReported += SoundPlayer_PeakReported;
 
             double db = ToDecibel(App.SoundPlayer.OutputGain);
-            db = Math.Clamp(db + 1, GainMin, GainMax);
+            db = Math.Clamp(db, GainMin, GainMax);
             VolumeSlider.Value = db;
+        }
+
+        private void App_AssignDataChanged(object? sender, Type e)
+        {
+            if (e == typeof(GamepadAssign.MainPageGamepadAction))
+            {
+                var assign = App.AssignData.MainPage.CreateAssign(GetGamepadAction);
+                var shifted_assign = App.AssignData.MainPageShift.CreateAssign(GetGamepadAction);
+                App.Gamepad.SetAssign(assign, shifted_assign);
+            }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -91,6 +102,7 @@ namespace APlayer
             App.SoundPlayer.ResetPlayList();
 
             App.Gamepad.ResetAssign();
+            App.AssignDataChanged -= App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;

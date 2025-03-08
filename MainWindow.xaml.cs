@@ -215,25 +215,40 @@ namespace APlayer
 
         private async void GamepadSettings_Click(object sender, RoutedEventArgs e)
         {
+            var settings = new GamepadSettings();
             var dialog = new ContentDialog()
             {
                 XamlRoot = this.Content.XamlRoot,
                 Title = "Gamepad Assign",
                 PrimaryButtonText = "OK",
-                CloseButtonText = "Cancel"                ,
-                Content = new GamepadSettings(),
-
+                CloseButtonText = "Cancel",
+                Content = settings,
             };
 
             dialog.Resources["ContentDialogMaxWidth"] = 1080;
 
+            var primary = App.Gamepad.PrimaryAssign;
+            var shifted = App.Gamepad.ShiftedAssign;
+            App.Gamepad.ResetAssign();
+            if (primary.SourceDataType == typeof(SaveData.GamepadAssign.MainPageGamepadAction))
+            {
+                settings.SetTabIndex(1);
+            }
+
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
+                settings.Save(primary.SourceDataType);
+
+                if (App.SaveFolder != null)
+                {
+                    await SaveData.GamepadAssign.Save(App.AssignData, App.SaveFolder);
+                }
             }
-
-
-
+            else
+            {
+                App.Gamepad.SetAssign(primary,shifted);
+            }
         }
     }
 
