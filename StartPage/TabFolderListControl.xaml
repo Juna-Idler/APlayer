@@ -50,7 +50,8 @@
 
     </UserControl.Resources>
 
-    <TabView x:Name="TabView" TabItemsSource="{x:Bind TabFolderListItems}" SelectedIndex="{x:Bind SelectedIndex,Mode=TwoWay}" AddTabButtonClick="TabView_AddTabButtonClick">
+    <TabView x:Name="TabView" TabItemsSource="{x:Bind TabFolderListItems}" VerticalAlignment="Stretch"
+             SelectedIndex="{x:Bind SelectedIndex,Mode=TwoWay}" AddTabButtonClick="TabView_AddTabButtonClick">
         <TabView.TabItemTemplate>
             <DataTemplate x:DataType="local:TabFolderListItem">
                 <TabViewItem IsClosable="False" ContextFlyout="{StaticResource TabItemHeaderFlyout}"

@@ -10,14 +10,15 @@
     Background="Transparent"
     Loaded="Page_Loaded" Unloaded="Page_Unloaded">
 
-    <Grid Margin="4">
+    <Grid Margin="4"
+          AllowDrop="True" DragEnter="Grid_DragEnter" Drop="Grid_Drop">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
         </Grid.ColumnDefinitions>
-        <local:TabFolderListControl x:Name="TabFolderListControl" SelectedFolder="TabFolderListControl_SelectedFolder" />
+        <local:TabFolderListControl x:Name="TabFolderListControl" SelectedFolder="TabFolderListControl_SelectedFolder" VerticalAlignment="Stretch" />
         <Grid VerticalAlignment="Stretch" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>

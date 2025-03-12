@@ -389,6 +389,7 @@ namespace APlayer.StartPage
                     else
                         e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
                 }
+                e.Handled = true;
             }
         }
 

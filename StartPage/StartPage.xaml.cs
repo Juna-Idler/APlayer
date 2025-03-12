@@ -25,6 +25,8 @@ using APlayer;
 using System.Diagnostics;
 using System.Reflection;
 using APlayer.SaveData;
+using Windows.ApplicationModel.DataTransfer;
+using static APlayer.StartPage.SavedData.Group;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -227,6 +229,32 @@ namespace APlayer.StartPage
 
 
         }
+
+        private void Grid_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                e.AcceptedOperation = DataPackageOperation.Copy;
+                e.Handled = true;
+            }
+        }
+
+        private async void Grid_Drop(object sender, DragEventArgs e)
+        {
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                var items = await e.DataView.GetStorageItemsAsync();
+                foreach (var item in items)
+                {
+                    if (item is StorageFolder folder)
+                    {
+                        TabFolderListControl.AddFolder(folder);
+                    }
+                }
+            }
+        }
+
+
     }
 
 
