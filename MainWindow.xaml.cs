@@ -36,6 +36,9 @@ namespace APlayer
     {
         private string LocalFolder = "";
 
+        public bool DefaultVolumeSlider { get => VolumeSlider.IsOn; }
+        public bool DefaultControlPanel { get => ControlPanel.IsOn; }
+
         public MainWindow()
         {
             LocalFolder = ApplicationData.Current.LocalFolder.Path;
@@ -52,23 +55,15 @@ namespace APlayer
             }
 
             var theme = localSettings.Values["Theme"] as int?;
-            if (theme is int t)
-            {
-                ThemeList.SelectedIndex = t;
-            }
-            else
-            {
-                ThemeList.SelectedIndex = 0;
-            }
+            ThemeList.SelectedIndex = theme is int t ? t : 0;
             var backdrop = localSettings.Values["Backdrop"] as int?;
-            if (backdrop is int b)
-            {
-                BackdropList.SelectedIndex = b;
-            }
-            else
-            {
-                BackdropList.SelectedIndex = 0;
-            }
+            BackdropList.SelectedIndex = backdrop is int b ? b : 0;
+
+            var volume_slider = localSettings.Values["VolumeSlider"] as bool?;
+            VolumeSlider.IsOn = volume_slider is not bool vs || vs;
+            var control_panel = localSettings.Values["ControlPanel"] as bool?;
+            ControlPanel.IsOn = control_panel is not bool cp || cp;
+
             XInputUser.SelectedIndex = (int)App.Gamepad.UserIndex;
 
             SetTitleBar(AppTitleBar);
@@ -188,6 +183,17 @@ namespace APlayer
             {
                 localSettings.Values["Backdrop"] = BackdropList.SelectedIndex;
             }
+            var volume_slider = localSettings.Values["VolumeSlider"] as bool?;
+            if (volume_slider == null || volume_slider != VolumeSlider.IsOn)
+            {
+                localSettings.Values["VolumeSlider"] = VolumeSlider.IsOn;
+            }
+            var control_panel = localSettings.Values["ControlPanel"] as bool?;
+            if (control_panel == null || control_panel != ControlPanel.IsOn)
+            {
+                localSettings.Values["ControlPanel"] = ControlPanel.IsOn;
+            }
+
 
             PointInt32 pos = AppWindow.Position;
             SizeInt32 size = AppWindow.Size;
@@ -250,6 +256,15 @@ namespace APlayer
                 App.Gamepad.SetAssign(primary,shifted);
             }
         }
+
+        private async void LocalFolderPath_Click(object sender, RoutedEventArgs e)
+        {
+            Uri uri = new(LocalFolder);
+            await Windows.System.Launcher.LaunchUriAsync(uri);
+
+//            System.Diagnostics.Process.Start();
+        }
+
     }
 
 }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Windows.Graphics;
 using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -53,6 +54,13 @@ namespace APlayer
 
             VolumeSlider.Maximum = GainMax;
             VolumeSlider.Minimum = GainMin;
+
+            if (App.MainWindow != null)
+            {
+                VolumeSliderVisible.IsChecked = App.MainWindow.DefaultVolumeSlider;
+                VolumeSlider.Visibility = App.MainWindow.DefaultVolumeSlider ? Visibility.Visible : Visibility.Collapsed;
+                ControlPanel.Visibility = App.MainWindow.DefaultControlPanel ? Visibility.Visible : Visibility.Collapsed;
+            }
 
             Timer.Interval = TimeSpan.FromMicroseconds(100);
             Timer.Tick += Timer_Tick;
@@ -379,9 +387,26 @@ namespace APlayer
                     MainFrame.GoBack();
             }
         }
+
+        private void ControlPanelSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (ControlPanelSwitch.Content is FontIcon fonticon)
+            {
+                if (ControlPanel.Visibility == Visibility.Visible)
+                {
+                    ControlPanel.Visibility = Visibility.Collapsed;
+//                    fonticon.Glyph = "\uE70D";
+                }
+                else
+                {
+                    ControlPanel.Visibility = Visibility.Visible;
+//                    fonticon.Glyph = "\uE70E";
+                }
+            }
+        }
     }
 
-    class PlayerViewModel : INotifyPropertyChanged
+    partial class PlayerViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

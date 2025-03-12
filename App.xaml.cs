@@ -51,7 +51,7 @@ namespace APlayer
             Gamepad = new(user.Value,interval.Value);
         }
 
-        public static Window? MainWindow { get; private set; }
+        public static MainWindow? MainWindow { get; private set; }
 
         public static Gamepad Gamepad { get; private set; }
 

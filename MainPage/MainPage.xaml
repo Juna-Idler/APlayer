@@ -69,7 +69,7 @@
                         <TextBlock x:Name="PlayingTitle" Grid.Column="0" Text="{x:Bind viewModel.PlayingTitle,Mode=OneWay}"
                                    VerticalAlignment="Center" TextAlignment="Center" FontSize="20" />
                     </Button>
-                    <ToggleButton Grid.Column="1" IsChecked="True" Padding="4,2" Margin="0,2,0,2"
+                    <ToggleButton x:Name="VolumeSliderVisible" Grid.Column="1" Padding="4,2" Margin="0,2,0,2"
                                   Checked="ToggleButton_Checked" Unchecked="ToggleButton_Unchecked" >
                         <TextBlock x:Name="VolumeNumber" Grid.Column="1" VerticalAlignment="Center"
                                Text="{x:Bind viewModel.VolumeNumber,Mode=OneWay}"
@@ -78,6 +78,7 @@
                 </Grid>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
@@ -85,21 +86,24 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
+                    <Button x:Name="ControlPanelSwitch" Grid.RowSpan="2" VerticalAlignment="Bottom" Click="ControlPanelSwitch_Click" >
+                        <FontIcon Glyph="&#xE70D;"  FontFamily="{StaticResource SymbolThemeFontFamily}"/>
+                    </Button>
                     <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
                             Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
                             TickFrequency="60" TickPlacement="BottomRight"
-                            Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Center"
+                            Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center"
                             ValueChanged="PlayingPosition_ValueChanged"/>
-                    <TextBlock Grid.Column="1"
+                    <TextBlock Grid.Column="2"
                                    Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}"
                                    TextAlignment="Right" VerticalAlignment="Bottom"
                                    FontSize="18"  Style="{StaticResource MonospacedFont}" />
-                    <TextBlock Grid.Column="1" Grid.Row="1"
+                    <TextBlock Grid.Column="2" Grid.Row="1"
                                    Text="{x:Bind viewModel.DurationString,Mode=OneWay}"
                                    FontSize="18" TextAlignment="Right" VerticalAlignment="Bottom" Style="{StaticResource MonospacedFont}" />
 
                 </Grid>
-                <Grid Visibility="Visible">
+                <Grid x:Name="ControlPanel" Visibility="Visible">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>

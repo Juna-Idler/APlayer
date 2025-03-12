@@ -20,6 +20,9 @@
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -40,15 +43,22 @@
                         <x:String>Acrylic</x:String>
                     </ComboBox>
                     
-                    <TextBlock Text="XInput User Index" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="XInputUser" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="XInputUser_SelectionChanged">
+                    <TextBlock Text="Default Volume Slider" Grid.Row="3" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="VolumeSlider" Grid.Row="3" Grid.Column="1" />
+                    <TextBlock Text="Default Control Panel" Grid.Row="4" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="ControlPanel" Grid.Row="4" Grid.Column="1" />
+
+                    <TextBlock Text="XInput User Index" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="XInputUser" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SelectionChanged="XInputUser_SelectionChanged">
                         <ComboBoxItem Content="0"/>
                         <ComboBoxItem Content="1"/>
                         <ComboBoxItem Content="2"/>
                         <ComboBoxItem Content="3"/>
                     </ComboBox>
-                    
-                    <Button x:Name="GamepadSettings" Grid.Row="4" Grid.ColumnSpan="2" Content="Gamepad Assign" Click="GamepadSettings_Click" HorizontalAlignment="Center" />
+
+                    <Button x:Name="GamepadSettings" Grid.Row="6" Grid.ColumnSpan="2" Content="Gamepad Assign" Click="GamepadSettings_Click" HorizontalAlignment="Stretch" />
+
+                    <Button Content="Open Settings Folder" x:Name="LocalFolderPath" Grid.Row="7" Grid.ColumnSpan="2" Click="LocalFolderPath_Click" ToolTipService.ToolTip="{x:Bind LocalFolder}" HorizontalAlignment="Stretch" />
                 </Grid>
 
             </Flyout>
