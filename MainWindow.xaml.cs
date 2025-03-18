@@ -265,6 +265,20 @@ namespace APlayer
 //            System.Diagnostics.Process.Start();
         }
 
+        private void FullScreen_Click(object sender, RoutedEventArgs e)
+        {
+            if (App.MainWindow != null)
+            {
+                if (App.MainWindow.AppWindow.Presenter.Kind != Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen)
+                {
+                    App.MainWindow.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
+                }
+                else
+                {
+                    App.MainWindow.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped);
+                }
+            }
+        }
     }
 
 }

@@ -23,6 +23,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -59,6 +60,7 @@
                     <Button x:Name="GamepadSettings" Grid.Row="6" Grid.ColumnSpan="2" Content="Gamepad Assign" Click="GamepadSettings_Click" HorizontalAlignment="Stretch" />
 
                     <Button Content="Open Settings Folder" x:Name="LocalFolderPath" Grid.Row="7" Grid.ColumnSpan="2" Click="LocalFolderPath_Click" ToolTipService.ToolTip="{x:Bind LocalFolder}" HorizontalAlignment="Stretch" />
+                    <Button Content="Full Screen" x:Name="FullScreen" Grid.Row="8" Grid.ColumnSpan="2" Click="FullScreen_Click" HorizontalAlignment="Stretch" />
                 </Grid>
 
             </Flyout>
