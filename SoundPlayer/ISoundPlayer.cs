@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage;
 
-namespace APlayer
+namespace APlayer.SoundPlayer
 {
     public interface ISoundPlayer
     {
@@ -30,9 +30,12 @@ namespace APlayer
         public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
         public event EventHandler<PlayerState>? StateChanged;
-        public event EventHandler<float[]>? FrameReported;
+        public event EventHandler<(byte[],int)>? FrameReported;
 
+        public uint SampleRate { get; }
+        public uint BitsPerSample { get; }
         public uint ChannelCount { get; }
+
         public PlayerState State { get; }
         public ITrack? CurrentTrack { get; }
         public IReadOnlyList<ITrack> Playlist { get; }

@@ -1,4 +1,5 @@
 ﻿using APlayer.SaveData;
+using APlayer.SoundPlayer;
 using APlayer.StartPage;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -87,12 +88,13 @@ namespace APlayer
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
-            App.SoundPlayer.FrameReported += SoundPlayer_PeakReported;
+            App.SoundPlayer.FrameReported += SoundPlayer_FrameReported;
 
             double db = ToDecibel(App.SoundPlayer.OutputGain);
             db = Math.Clamp(db, GainMin, GainMax);
             VolumeSlider.Value = db;
         }
+
 
         private void App_AssignDataChanged(object? sender, Type e)
         {
@@ -109,13 +111,13 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
-            App.Gamepad.ResetAssign();
+//            App.Gamepad.ResetAssign();
             App.AssignDataChanged -= App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
-            App.SoundPlayer.FrameReported -= SoundPlayer_PeakReported;
+            App.SoundPlayer.FrameReported -= SoundPlayer_FrameReported;
         }
 
         private Action GetGamepadAction(GamepadAssign.MainPageGamepadAction act)
@@ -161,8 +163,7 @@ namespace APlayer
 
 
 
-
-        private void SoundPlayer_PeakReported(object? sender, float[] e)
+        private void SoundPlayer_FrameReported(object? sender, (byte[] buffer, int length) e)
         {
             this.DispatcherQueue.TryEnqueue(() =>
             {
@@ -171,17 +172,44 @@ namespace APlayer
                 float right_peak = 0;
                 if (App.SoundPlayer.ChannelCount == 2)
                 {
-                    for (int i = 0; i < e.Length; i += 2)
+                    switch (App.SoundPlayer.BitsPerSample)
                     {
-                        left_peak = Math.Max(left_peak, e[i]);
-                        right_peak = Math.Max(right_peak, e[i + 1]);
+                        case 16:
+                            {
+                                for (int i = 0; i < e.length; i += 4)
+                                {
+                                    int v = BitConverter.ToInt16(e.buffer, i);
+                                    left_peak = Math.Max(left_peak, v / (float)-Int16.MinValue);
+                                    v = BitConverter.ToInt16(e.buffer, i + 2);
+                                    right_peak = Math.Max(right_peak, v / (float)-Int16.MinValue);
+                                }
+                            }
+                            break;
+                        case 24:
+                            {
+                                byte[] tmp = [0,0,0,0];
+                                for (int i = 0; i < e.length; i += 6)
+                                {
+                                    Array.Copy(e.buffer, i, tmp, 0, 3);
+                                    tmp[3] = (byte)(0 - (tmp[2] >> 7 & 1));
+                                    int v = BitConverter.ToInt32(tmp);
+                                    left_peak = Math.Max(left_peak, v / (float)0x800000);
+                                    Array.Copy(e.buffer, i + 3, tmp, 0, 3);
+                                    tmp[3] = (byte)(0 - (tmp[2] >> 7 & 1));
+                                    v = BitConverter.ToInt32(tmp);
+                                    right_peak = Math.Max(right_peak, v / (float)0x800000);
+                                }
+
+                            }
+                            break;
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < e.Length; i++)
+                    for (int i = 0; i < e.length; i+=2)
                     {
-                        left_peak = Math.Max(left_peak, e[i]);
+                        int v = BitConverter.ToInt16(e.buffer, i);
+                        left_peak = Math.Max(left_peak, v / (float)-Int16.MinValue);
                     }
                 }
 
@@ -221,21 +249,22 @@ namespace APlayer
 
         private void Timer_Tick(object? sender, object e)
         {
+            float max_height = (float)Player.ActualHeight * 0.9f;
             var pos = App.SoundPlayer.GetPosition();
             viewModel.PlayingPosition = pos;
             //なんか AudioFileInputNode.FileCompleted が来ない時がたまにあるので、とりあえずここでチェック
             if (pos > App.SoundPlayer.CurrentTrack?.Duration)
                 App.SoundPlayer.PlayNext();
 
-            while (LeftPeaks.Count > 5)
+            while (LeftPeaks.Count > 1)
                 LeftPeaks.TryDequeue(out _);
-            while (RightPeaks.Count > 5)
+            while (RightPeaks.Count > 1)
                 RightPeaks.TryDequeue(out _);
             double l = ToDecibel(LeftPeaks.Max());
             double r = ToDecibel(RightPeaks.Max());
 
-            viewModel.LeftPeak = (float)(Math.Clamp(l, -80, 0) + 80) * 1.5f;
-            viewModel.RightPeak = (float)(Math.Clamp(r, -80, 0) + 80) * 1.5f;
+            viewModel.LeftPeak = (float)(Math.Clamp(l, -80, 0) + 80) / 80 * max_height;
+            viewModel.RightPeak = (float)(Math.Clamp(r, -80, 0) + 80) / 80 * max_height;
         }
 
         private void SoundPlayer_PlaylistChanged(object? sender, (IReadOnlyList<ISoundPlayer.ITrack> list, int index) e)

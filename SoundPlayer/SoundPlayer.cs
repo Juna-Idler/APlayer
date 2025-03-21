@@ -9,11 +9,11 @@ using System.Runtime.InteropServices;
 using Windows.Foundation;
 using Windows.Media;
 using System.Runtime.InteropServices.Marshalling;
-using static APlayer.ISoundPlayer;
+using static APlayer.SoundPlayer.ISoundPlayer;
 using Windows.Media.Playlists;
 using Windows.Devices.Enumeration;
 
-namespace APlayer
+namespace APlayer.SoundPlayer
 {
 
     public class SoundPlayer : ISoundPlayer
@@ -21,7 +21,7 @@ namespace APlayer
         public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
         public event EventHandler<PlayerState>? StateChanged;
-        public event EventHandler<float[]>? FrameReported;
+        public event EventHandler<(byte[], int)>? FrameReported;
 
         public class Device(DeviceInformation device) : IDevice
         {
@@ -31,7 +31,7 @@ namespace APlayer
         public async Task<IReadOnlyList<IDevice>> GetDevices()
         {
             var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(Windows.Media.Devices.MediaDevice.GetAudioRenderSelector());
-            List<Device> result = new(devices.Select(d => new Device(d)));
+            List<Device> result = [.. devices.Select(d => new Device(d))];
             return result;
         }
 
@@ -50,6 +50,9 @@ namespace APlayer
 
         private AudioGraph? AudioGraph { get; set; }
         private AudioDeviceOutputNode? DeviceOutputNode { get; set; }
+
+        public uint SampleRate => (AudioGraph == null) ? 0 : AudioGraph.EncodingProperties.SampleRate;
+        public uint BitsPerSample => (AudioGraph == null) ? 0 : AudioGraph.EncodingProperties.BitsPerSample;
 
         public uint ChannelCount => (AudioGraph == null) ? 0 : AudioGraph.EncodingProperties.ChannelCount;
 
@@ -100,8 +103,6 @@ namespace APlayer
 
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
-
-        private AudioFrameOutputNode? FrameOutputNode = null;
 
 
         public SoundPlayer()
@@ -156,8 +157,6 @@ namespace APlayer
         public void Terminalize()
         {
             ResetPlayList();
-            FrameOutputNode?.Dispose();
-            FrameOutputNode = null;
             DeviceOutputNode?.Dispose();
             DeviceOutputNode = null;
             AudioGraph?.Dispose();
@@ -240,8 +239,6 @@ namespace APlayer
             }
             currentTrack.FileInputNode.Seek(start_time);
             currentTrack.FileInputNode.AddOutgoingConnection(DeviceOutputNode);
-            if (FrameOutputNode != null)
-                currentTrack.FileInputNode.AddOutgoingConnection(FrameOutputNode);
             currentTrack.FileInputNode.FileCompleted += CurrentInputNode_FileCompleted;
             AudioGraph.Start();
             Stopwatch.Start();
@@ -287,8 +284,6 @@ namespace APlayer
             if (currentTrack != null)
             {
                 currentTrack.FileInputNode.RemoveOutgoingConnection(DeviceOutputNode);
-                if (FrameOutputNode != null)
-                    currentTrack.FileInputNode.RemoveOutgoingConnection(FrameOutputNode);
                 currentTrack.FileInputNode.FileCompleted -= CurrentInputNode_FileCompleted;
             }
             if (State != PlayerState.Stoped)
@@ -378,52 +373,6 @@ namespace APlayer
         {
             PlayNext();
         }
-
-        private float[] frame_buffer = [];
-        public void InsertPeakDetector()
-        {
-            if (AudioGraph == null) return;
-            if (FrameOutputNode != null)
-                return;
-
-            frame_buffer = new float[AudioGraph.SamplesPerQuantum * AudioGraph.EncodingProperties.ChannelCount];
-
-            FrameOutputNode = AudioGraph.CreateFrameOutputNode();
-            if (currentTrack != null)
-                currentTrack.FileInputNode.AddOutgoingConnection(FrameOutputNode);
-            AudioGraph.QuantumStarted += AudioGraph_QuantumStarted;
-        }
-        public void RemovePeakDetector()
-        {
-            if (AudioGraph == null) return;
-            if (FrameOutputNode ==  null) return;
-
-            AudioGraph.QuantumStarted -= AudioGraph_QuantumStarted;
-            if (currentTrack != null)
-                currentTrack.FileInputNode.RemoveOutgoingConnection(FrameOutputNode);
-            FrameOutputNode.Dispose();
-            FrameOutputNode = null;
-        }
-
-        unsafe private void AudioGraph_QuantumStarted(AudioGraph sender, object args)
-        {
-            if (FrameOutputNode == null)
-                return;
-            var frame = FrameOutputNode.GetFrame();
-            using (AudioBuffer buffer = frame.LockBuffer(AudioBufferAccessMode.Write))
-            using (IMemoryBufferReference reference = buffer.CreateReference())
-            {
-                byte* dataInBytes;
-                uint capacityInBytes;
-
-                // Get the buffer from the AudioFrame
-                ((IMemoryBufferByteAccess)reference).GetBuffer(out dataInBytes, out capacityInBytes);
-
-                System.Runtime.InteropServices.Marshal.Copy((nint)dataInBytes, frame_buffer, 0, (int)(buffer.Length / (sizeof(float) / sizeof(byte))));
-                FrameReported?.Invoke(this, frame_buffer);
-            }
-        }
-
 
     }
 

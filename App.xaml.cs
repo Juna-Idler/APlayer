@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using APlayer.SaveData;
+using APlayer.SoundPlayer;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -49,14 +50,18 @@ namespace APlayer
             if (interval == null || interval  <= TimeSpan.Zero)
                 interval = TimeSpan.FromMilliseconds(16);
             Gamepad = new(user.Value,interval.Value);
+
+            soundPlayer = new NAudioPlayer();
         }
 
         public static MainWindow? MainWindow { get; private set; }
 
         public static Gamepad Gamepad { get; private set; }
 
-        private static SoundPlayer soundPlayer = new();
-        public static ISoundPlayer SoundPlayer { get => soundPlayer; }
+        private static SoundPlayer.ISoundPlayer soundPlayer;
+        public static SoundPlayer.ISoundPlayer SoundPlayer { get => soundPlayer; }
+
+        public static LoopbackCapture LoopbackCapture { get; private set; } = new LoopbackCapture();
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
         public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents();
