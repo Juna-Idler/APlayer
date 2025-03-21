@@ -10,7 +10,7 @@
   <Identity
     Name="Juna.APlayer"
     Publisher="CN=5A73DF79-BD6A-4AE1-B61C-A55C6BAA944D"
-    Version="1.0.0.0" />
+    Version="1.0.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="9d84b23d-e9c5-4635-845f-4e01f8c92b60" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

@@ -109,7 +109,6 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
-            App.Gamepad.ResetAssign();
             App.AssignDataChanged -= App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
