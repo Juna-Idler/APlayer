@@ -44,8 +44,8 @@ namespace APlayer
 
         private GamepadActionDelegate GamepadActions { get; set; } = new();
 
-        private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
-        private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
+        private ConcurrentQueue<float> LeftPeaks = new([0, 0, 0, 0, 0]);
+        private ConcurrentQueue<float> RightPeaks = new([0, 0, 0, 0, 0]);
 
 
         public MainPage()
@@ -76,12 +76,12 @@ namespace APlayer
             if (SavedFolder != null && SavedList != null)
             {
                 var folder = await StorageFolder.GetFolderFromPathAsync(SavedFolder.Path);
-                MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions,SavedList,SavedFolder, folder, Frame));
+                MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions, SavedList, SavedFolder, folder, Frame));
             }
 
             var assign = App.AssignData.MainPage.CreateAssign(GetGamepadAction);
             var shifted_assign = App.AssignData.MainPageShift.CreateAssign(GetGamepadAction);
-            App.Gamepad.SetAssign(assign,shifted_assign);
+            App.Gamepad.SetAssign(assign, shifted_assign);
             App.AssignDataChanged += App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
@@ -389,18 +389,18 @@ namespace APlayer
 
         private void ControlPanelSwitch_Click(object sender, RoutedEventArgs e)
         {
-            if (ControlPanelSwitch.Content is FontIcon fonticon)
+            if (ControlPanel.Visibility == Visibility.Visible)
             {
-                if (ControlPanel.Visibility == Visibility.Visible)
-                {
-                    ControlPanel.Visibility = Visibility.Collapsed;
+                ControlPanel.Visibility = Visibility.Collapsed;
+//                if (ControlPanelSwitch.Content is FontIcon fonticon)
+//                {
 //                    fonticon.Glyph = "\uE70D";
-                }
-                else
-                {
-                    ControlPanel.Visibility = Visibility.Visible;
-//                    fonticon.Glyph = "\uE70E";
-                }
+//                }
+            }
+            else
+            {
+                ControlPanel.Visibility = Visibility.Visible;
+                //                    fonticon.Glyph = "\uE70E";
             }
         }
     }
