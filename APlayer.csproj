@@ -161,10 +161,15 @@
   
   <!-- Releaseビルドのトリム対策 -->
   <PropertyGroup>
+    <!--     
     <TrimMode>partial</TrimMode>
+    <IsTrimmable>true</IsTrimmable>
+     -->
     <BuiltInComInteropSupport>True</BuiltInComInteropSupport>
   </PropertyGroup>
   <ItemGroup>
-    <TrimmableAssembly Include="APlayer" />
+    <TrimmerRootAssembly Include="NAudio" />
+    <TrimmerRootAssembly Include="NAudio.Wasapi" />
+    <TrimmerRootAssembly Include="NAudio.Core" />
   </ItemGroup>  
 </Project>
