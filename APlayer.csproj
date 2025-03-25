@@ -158,4 +158,13 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  
+  <!-- Releaseビルドのトリム対策 -->
+  <PropertyGroup>
+    <TrimMode>partial</TrimMode>
+    <BuiltInComInteropSupport>True</BuiltInComInteropSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <TrimmableAssembly Include="APlayer" />
+  </ItemGroup>  
 </Project>

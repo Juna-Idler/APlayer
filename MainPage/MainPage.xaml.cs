@@ -45,8 +45,8 @@ namespace APlayer
 
         private GamepadActionDelegate GamepadActions { get; set; } = new();
 
-        private ConcurrentQueue<float> LeftPeaks = new([0,0,0,0,0]);
-        private ConcurrentQueue<float> RightPeaks = new([0,0,0,0,0]);
+        private ConcurrentQueue<float> LeftPeaks = new([0, 0, 0, 0, 0]);
+        private ConcurrentQueue<float> RightPeaks = new([0, 0, 0, 0, 0]);
 
 
         public MainPage()
@@ -77,12 +77,12 @@ namespace APlayer
             if (SavedFolder != null && SavedList != null)
             {
                 var folder = await StorageFolder.GetFolderFromPathAsync(SavedFolder.Path);
-                MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions,SavedList,SavedFolder, folder, Frame));
+                MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions, SavedList, SavedFolder, folder, Frame));
             }
 
             var assign = App.AssignData.MainPage.CreateAssign(GetGamepadAction);
             var shifted_assign = App.AssignData.MainPageShift.CreateAssign(GetGamepadAction);
-            App.Gamepad.SetAssign(assign,shifted_assign);
+            App.Gamepad.SetAssign(assign, shifted_assign);
             App.AssignDataChanged += App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
@@ -111,7 +111,7 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
-//            App.Gamepad.ResetAssign();
+            //            App.Gamepad.ResetAssign();
             App.AssignDataChanged -= App_AssignDataChanged;
 
             App.SoundPlayer.PlaylistChanged -= SoundPlayer_PlaylistChanged;
@@ -187,7 +187,7 @@ namespace APlayer
                             break;
                         case 24:
                             {
-                                byte[] tmp = [0,0,0,0];
+                                byte[] tmp = [0, 0, 0, 0];
                                 for (int i = 0; i < e.length; i += 6)
                                 {
                                     Array.Copy(e.buffer, i, tmp, 0, 3);
@@ -206,7 +206,7 @@ namespace APlayer
                 }
                 else
                 {
-                    for (int i = 0; i < e.length; i+=2)
+                    for (int i = 0; i < e.length; i += 2)
                     {
                         int v = BitConverter.ToInt16(e.buffer, i);
                         left_peak = Math.Max(left_peak, v / (float)-Int16.MinValue);
@@ -419,18 +419,16 @@ namespace APlayer
 
         private void ControlPanelSwitch_Click(object sender, RoutedEventArgs e)
         {
-            if (ControlPanelSwitch.Content is FontIcon fonticon)
+            if (ControlPanel.Visibility == Visibility.Visible)
             {
-                if (ControlPanel.Visibility == Visibility.Visible)
-                {
-                    ControlPanel.Visibility = Visibility.Collapsed;
+                ControlPanel.Visibility = Visibility.Collapsed;
+//                if (ControlPanelSwitch.Content is FontIcon fonticon)
 //                    fonticon.Glyph = "\uE70D";
-                }
-                else
-                {
-                    ControlPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ControlPanel.Visibility = Visibility.Visible;
 //                    fonticon.Glyph = "\uE70E";
-                }
             }
         }
     }

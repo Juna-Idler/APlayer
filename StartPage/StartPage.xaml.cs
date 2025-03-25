@@ -191,12 +191,12 @@ namespace APlayer.StartPage
         private async void DeviceUpdateButton_Click(object sender, RoutedEventArgs e)
         {
             OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
-            var device_name = OutputDeviceList.SelectedItem.ToString();
+            var device_name = OutputDeviceList.SelectedItem?.ToString();
             var devices = await App.SoundPlayer.GetDevices();
             List<OutputDevice> list = [new OutputDevice(null)];
             list.AddRange(devices.Select(x => new OutputDevice(x)));
             OutputDeviceList.ItemsSource = list;
-            OutputDeviceList.SelectedIndex = 0;
+            OutputDeviceList.SelectedIndex = list.Count == 0 ? -1 : 0;
             if (device_name is not null)
             {
                 int index = list.FindIndex(x => x.ToString() == device_name);
