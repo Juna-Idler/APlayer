@@ -14,8 +14,10 @@ using static APlayer.SoundPlayer.ISoundPlayer;
 
 namespace APlayer.SoundPlayer
 {
-    public class NAudioPlayer : ISoundPlayer
+    public class WasapiExclusivePlayer : ISoundPlayer
     {
+        public const string PlayerName = "WASAPI Exclusive";
+        public string Name { get => PlayerName; }
 
         public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;
@@ -28,12 +30,11 @@ namespace APlayer.SoundPlayer
             public string Name { get; set; } = device.FriendlyName;
             public MMDevice MMDevice { get; set; } = device;
         }
-        public Task<IReadOnlyList<IDevice>> GetDevices()
+        public IDevice[] GetDevices()
         {
             MMDeviceEnumerator enumerator = new();
             var endpoints = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            List<IDevice> result = [.. endpoints.Select(d=> new  Device(d))];
-            return Task.FromResult<IReadOnlyList<IDevice>>(result);
+            return [.. endpoints.Select(d=> new  Device(d))];
         }
 
 
@@ -46,6 +47,9 @@ namespace APlayer.SoundPlayer
 
             public TimeSpan Duration { get => Reader.TotalTime; }
         }
+
+        public const int Latency = 200;
+
 
         private Device? outputDevice = null;
 
@@ -109,28 +113,31 @@ namespace APlayer.SoundPlayer
         private readonly Stopwatch Stopwatch = new();
         private TimeSpan BaseTime = TimeSpan.Zero;
 
-        ~NAudioPlayer()
+        ~WasapiExclusivePlayer()
         {
             Terminalize();
         }
 
-        public Task<bool> Initialize(ISoundPlayer.IDevice? device = null)
+        public bool Initialize(ISoundPlayer.IDevice? device = null)
         {
             Terminalize();
             outputDevice = device as Device;
             if (CreateWasapi())
-                return Task.FromResult(true);
-            return Task.FromResult(false);
+            {
+                State = PlayerState.Empty;
+                return true;
+            }
+            return false;
         }
         private bool CreateWasapi()
         {
             if (outputDevice != null)
             {
-                WasapiOutput = new WasapiOut(outputDevice.MMDevice, AudioClientShareMode.Exclusive, true, 200);
+                WasapiOutput = new WasapiOut(outputDevice.MMDevice, AudioClientShareMode.Exclusive, true, Latency);
             }
             else
             {
-                WasapiOutput = new WasapiOut();
+                WasapiOutput = new WasapiOut( AudioClientShareMode.Exclusive, true, Latency);
             }
             return WasapiOutput != null;
         }
@@ -142,14 +149,15 @@ namespace APlayer.SoundPlayer
             Provider = null;
             WasapiOutput?.Dispose();
             WasapiOutput = null;
+            State = PlayerState.Null;
         }
 
 
 
-        public Task SetPlaylist(IEnumerable<IStorageFile> list, int index = 0)
+        public void SetPlaylist(IEnumerable<IStorageFile> list, int index = 0)
         {
             if (WasapiOutput == null)
-                return Task.CompletedTask;
+                return;
 
 
             if (State == PlayerState.Playing || State == PlayerState.Paused)
@@ -185,8 +193,6 @@ namespace APlayer.SoundPlayer
                 currentTrack = playlist[i];
                 PlaylistChanged?.Invoke(this, (Playlist, i));
             }
-
-            return Task.CompletedTask;
         }
         public void ResetPlayList()
         {

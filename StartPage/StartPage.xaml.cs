@@ -119,43 +119,16 @@ namespace APlayer.StartPage
 
         }
 
-        private async void OutputDeviceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            if (OutputDeviceList.SelectedItem is OutputDevice od)
+            SoundApiList.SelectedIndex = App.SoundPlayer switch
             {
-                if (App.SoundPlayer.OutputDevice == od.Device)
-                    return;
-                var result = await App.SoundPlayer.Initialize(od.Device);
-                if (!result)
-                {
-                    //Ž¸”s‚µ‚½
-                }
-            }
-        }
-
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-            var devices = await App.SoundPlayer.GetDevices();
-            List<OutputDevice> list = [new OutputDevice(null)];
-            list.AddRange(devices.Select(x => new OutputDevice(x)));
-            OutputDeviceList.ItemsSource = list;
-            OutputDeviceList.SelectedIndex = 0;
-
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            if (localSettings.Values["OutputDevice"] is string device_name)
-            {
-                int index = list.FindIndex(x => x.ToString() == device_name);
-                if (index >= 0)
-                {
-                    var result = await App.SoundPlayer.Initialize(list[index].Device);
-                    if (result)
-                    {
-                        OutputDeviceList.SelectedIndex = index;
-                    }
-                }
-            }
-            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
-
+                WasapiSharedPlayer => 0,
+                WasapiExclusivePlayer => 1,
+                _ => -1,
+            };
+            SoundApiList.SelectionChanged += SoundApiList_SelectionChanged;
 
             var assign = App.AssignData.StartPage.CreateAssign(GetAction);
             App.Gamepad.SetAssign(assign);
@@ -174,44 +147,9 @@ namespace APlayer.StartPage
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
-
-            ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            if (OutputDeviceList.SelectedItem is OutputDevice od)
-            {
-                if (localSettings.Values["OutputDevice"] is not string device_name || device_name != od.ToString())
-                {
-                    localSettings.Values["OutputDevice"] = od.ToString();
-                }
-            }
         }
 
 
-
-        private async void DeviceUpdateButton_Click(object sender, RoutedEventArgs e)
-        {
-            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
-            var device_name = OutputDeviceList.SelectedItem?.ToString();
-            var devices = await App.SoundPlayer.GetDevices();
-            List<OutputDevice> list = [new OutputDevice(null)];
-            list.AddRange(devices.Select(x => new OutputDevice(x)));
-            OutputDeviceList.ItemsSource = list;
-            OutputDeviceList.SelectedIndex = list.Count == 0 ? -1 : 0;
-            if (device_name is not null)
-            {
-                int index = list.FindIndex(x => x.ToString() == device_name);
-                if (index >= 0)
-                {
-                    var result = await App.SoundPlayer.Initialize(list[index].Device);
-                    if (result)
-                    {
-                        OutputDeviceList.SelectedIndex = index;
-                    }
-                }
-            }
-            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
-
-        }
 
 
 
@@ -254,7 +192,17 @@ namespace APlayer.StartPage
             }
         }
 
+        private void SoundApiList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            App.SoundPlayer.Terminalize();
+            App.SoundPlayer = SoundApiList.SelectedIndex switch
+            {
+                0 => new WasapiSharedPlayer(),
+                1 => new WasapiExclusivePlayer(),
+                _ => new NullPlayer(),
+            };
 
+        }
     }
 
 
@@ -281,17 +229,6 @@ namespace APlayer.StartPage
         }
     }
 
-    public class OutputDevice(ISoundPlayer.IDevice? device)
-    {
-        public ISoundPlayer.IDevice? Device { get; set; } = device;
-
-        public override string ToString()
-        {
-            if (Device == null)
-                return "Default Device";
-            return Device.Name;
-        }
-    }
 
 
 }

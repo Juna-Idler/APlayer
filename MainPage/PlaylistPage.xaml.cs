@@ -82,19 +82,19 @@ namespace APlayer
                 }
                 if (fileListIndex == -1)
                 {
-                    fileList = new(folder
+                    fileList = [.. folder
                         .Where(item => item.Type == FolderItem.ItemType.Audio)
-                        .Select(item => (IStorageFile)item.Item));
+                        .Select(item => (IStorageFile)item.Item)];
                     fileListIndex = fileList.FindIndex(0, item => item.Name == file.Item.Name);
                 }
             }
         }
 
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             if (fileList.Count > 0)
             {
-                await App.SoundPlayer.SetPlaylist(fileList, fileListIndex);
+                App.SoundPlayer.SetPlaylist(fileList, fileListIndex);
             }
             if (fileListIndex >= 0)
             {

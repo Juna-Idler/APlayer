@@ -85,6 +85,8 @@ namespace APlayer
             App.Gamepad.SetAssign(assign, shifted_assign);
             App.AssignDataChanged += App_AssignDataChanged;
 
+            App.SoundPlayer.Initialize(App.SoundDevice);
+
             App.SoundPlayer.PlaylistChanged += SoundPlayer_PlaylistChanged;
             App.SoundPlayer.CurrentIndexChanged += SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged += SoundPlayer_StateChanged;
@@ -93,6 +95,13 @@ namespace APlayer
             double db = ToDecibel(App.SoundPlayer.OutputGain);
             db = Math.Clamp(db, GainMin, GainMax);
             VolumeSlider.Value = db;
+
+            App.SoundDeviceChanged += App_SoundDeviceChanged;
+        }
+
+        private void App_SoundDeviceChanged(object? sender, EventArgs e)
+        {
+//            App.SoundPlayer.ChangeDevice(App.SoundDevice);
         }
 
 

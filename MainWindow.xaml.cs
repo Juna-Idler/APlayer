@@ -23,6 +23,8 @@ using WinRT.Interop;
 using Windows.ApplicationModel;
 using Microsoft.UI.Input;
 using Windows.Graphics;
+using APlayer.StartPage;
+using APlayer.SoundPlayer;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -66,6 +68,24 @@ namespace APlayer
 
             XInputUser.SelectedIndex = (int)App.Gamepad.UserIndex;
 
+            var device_name = localSettings.Values["OutputDevice"] as string;
+            var devices = App.SoundPlayer.GetDevices();
+            List<OutputDevice> list = [new OutputDevice(null)];
+            list.AddRange(devices.Select(x => new OutputDevice(x)));
+            OutputDeviceList.ItemsSource = list;
+            OutputDeviceList.SelectedIndex = 0;
+            if (device_name is not null)
+            {
+                int index = list.FindIndex(x => x.ToString() == device_name);
+                if (index >= 0)
+                {
+                    OutputDeviceList.SelectedIndex = index;
+                    App.SoundDevice = list[index].Device;
+                }
+            }
+            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+            App.SoundPlayerChanged += (o, e) => ResetDeviceList();
+
             SetTitleBar(AppTitleBar);
             ExtendsContentIntoTitleBar = true;
 
@@ -81,6 +101,7 @@ namespace APlayer
 
             MainFrame.Navigate(typeof(StartPage.StartPage));
         }
+
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
         {
@@ -122,16 +143,18 @@ namespace APlayer
             RightPaddingColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scaleAdjustment);
             LeftPaddingColumn.Width = new GridLength(AppWindow.TitleBar.LeftInset / scaleAdjustment);
 
-            var transform = SettingButton.TransformToVisual(null);
-            Rect bounds = transform.TransformBounds(new Rect(0, 0,
-                                                             SettingButton.ActualWidth,
-                                                             SettingButton.ActualHeight));
-            var rect = GetRect(bounds, scaleAdjustment);
+            var setting_rect = GetRect(SettingButton, scaleAdjustment);
+            var device_rect = GetRect(OutputDevicePanel, scaleAdjustment);
             var nonClientInputSrc = InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
-            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, [rect]);
+            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, [setting_rect,device_rect]);
         }
-        private Windows.Graphics.RectInt32 GetRect(Rect bounds, double scale)
+
+        private Windows.Graphics.RectInt32 GetRect(FrameworkElement control,double scale)
         {
+            var transform = control.TransformToVisual(null);
+            Rect bounds = transform.TransformBounds(new Rect(0, 0,
+                                                            control.ActualWidth,
+                                                            control.ActualHeight));
             return new Windows.Graphics.RectInt32(
                 _X: (int)Math.Round(bounds.X * scale),
                 _Y: (int)Math.Round(bounds.Y * scale),
@@ -165,6 +188,16 @@ namespace APlayer
         private void Window_Closed(object sender, WindowEventArgs args)
         {
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+            if (OutputDeviceList.SelectedItem is OutputDevice od)
+            {
+                if (localSettings.Values["OutputDevice"] is not string device_name || device_name != od.ToString())
+                {
+                    localSettings.Values["OutputDevice"] = od.ToString();
+                }
+            }
+            if (localSettings.Values["SoundAPI"] is not string sound_api || sound_api != App.SoundPlayer.Name)
+                localSettings.Values["SoundAPI"] = App.SoundPlayer.Name;
 
             var user = localSettings.Values["GamepadUserIndex"] as uint?;
             if (user == null || user != App.Gamepad.UserIndex)
@@ -278,6 +311,57 @@ namespace APlayer
                     App.MainWindow.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped);
                 }
             }
+        }
+
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            ResetDeviceList();
+        }
+
+        private void ResetDeviceList()
+        {
+            OutputDeviceList.SelectionChanged -= OutputDeviceList_SelectionChanged;
+            string? device_name = App.SoundDevice?.Name;
+            var devices = App.SoundPlayer.GetDevices();
+            List<OutputDevice> list = [new OutputDevice(null)];
+            list.AddRange(devices.Select(x => new OutputDevice(x)));
+            OutputDeviceList.ItemsSource = list;
+            if (device_name is not null)
+            {
+                int index = list.FindIndex(x => x.ToString() == device_name);
+                if (index >= 0)
+                {
+                    OutputDeviceList.SelectedIndex = index;
+                    App.SoundDevice = devices[index - 1];
+                    OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+                    return;
+                }
+            }
+            OutputDeviceList.SelectedIndex = list.Count == 0 ? -1 : 0;
+            App.SoundDevice = null;
+            OutputDeviceList.SelectionChanged += OutputDeviceList_SelectionChanged;
+        }
+
+        private void OutputDeviceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count == 0)
+                return;
+            if (e.AddedItems[0] is OutputDevice device)
+            {
+                App.SoundDevice = device.Device;
+            }
+        }
+    }
+
+    public class OutputDevice(ISoundPlayer.IDevice? device)
+    {
+        public ISoundPlayer.IDevice? Device { get; set; } = device;
+
+        public override string ToString()
+        {
+            if (Device == null)
+                return "Default Device";
+            return Device.Name;
         }
     }
 

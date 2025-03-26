@@ -74,13 +74,23 @@
                 <ColumnDefinition x:Name="LeftPaddingColumn" />
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition x:Name="RightPaddingColumn" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="AppTitleTextBlock" Grid.Column="1"
                        Text="App title" Style="{StaticResource CaptionTextBlockStyle}"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0" />
-            <Button x:Name="SettingButton" Grid.Column="2" VerticalAlignment="Stretch" Flyout="{StaticResource SettingFlyout}" >
+
+            <StackPanel x:Name="OutputDevicePanel" Orientation="Horizontal" Grid.Column="2">
+                <Button VerticalAlignment="Center" Click="RefreshButton_Click" ToolTipService.ToolTip="Refresh device list">
+                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE72C;" FontSize="18"/>
+                </Button>
+                <ComboBox x:Name="OutputDeviceList" VerticalAlignment="Center" FontSize="14" Width="200"
+                      ToolTipService.ToolTip="Output Device" />
+            </StackPanel>
+
+            <Button x:Name="SettingButton" Grid.Column="3" VerticalAlignment="Stretch" Flyout="{StaticResource SettingFlyout}" >
                 <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE713;" FontSize="18"/>
             </Button>
         </Grid>

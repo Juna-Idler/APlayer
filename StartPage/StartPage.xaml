@@ -23,17 +23,15 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" VerticalAlignment="Center" Click="DeviceUpdateButton_Click" ToolTipService.ToolTip="Refresh device list">
-                <SymbolIcon Symbol="Refresh" />
-            </Button>
-            <ComboBox x:Name="OutputDeviceList" Grid.Column="1" VerticalAlignment="Center" FontSize="18"
-                      ToolTipService.ToolTip="Output Device" />
-            <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="5"
+            <ComboBox x:Name="SoundApiList" Grid.Column="0" VerticalAlignment="Center" FontSize="18" Width="200" >
+                <ComboBoxItem Content="WASAPI Shared"/>
+                <ComboBoxItem Content="WASAPI Exclusive"/>
+            </ComboBox>
+
+            <Button x:Name="PickFolderButton" Content="Add Folder" Grid.Column="3"
                     Click="PickFolderButton_Click" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="10" />
         </Grid>
 

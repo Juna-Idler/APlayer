@@ -7,14 +7,17 @@ namespace APlayer.SoundPlayer
 {
     public interface ISoundPlayer
     {
+        public string Name { get; }
         public interface IDevice
         {
             string Name { get; }
         }
-        public Task<IReadOnlyList<IDevice>> GetDevices();
+        public IDevice[] GetDevices();
 
-        public Task<bool> Initialize(IDevice? device = null);
+        public bool Initialize(IDevice? device = null);
         public void Terminalize();
+
+//        public bool ChangeDevice(IDevice? device);
 
         public IDevice? OutputDevice { get; }
 
@@ -47,7 +50,7 @@ namespace APlayer.SoundPlayer
 
         public double OutputGain { get; set; }
 
-        public Task SetPlaylist(IEnumerable<IStorageFile> list, int index = 0);
+        public void SetPlaylist(IEnumerable<IStorageFile> list, int index = 0);
         public void ResetPlayList();
 
         public void Start(TimeSpan start_time);

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using APlayer.SaveData;
 using APlayer.SoundPlayer;
+using APlayer.StartPage;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -51,17 +52,42 @@ namespace APlayer
                 interval = TimeSpan.FromMilliseconds(16);
             Gamepad = new(user.Value,interval.Value);
 
-            soundPlayer = new NAudioPlayer();
+
+            var sound_api = local.Values["SoundAPI"] as string ?? WasapiSharedPlayer.PlayerName;
+            SoundPlayer = sound_api switch
+            {
+                WasapiSharedPlayer.PlayerName => new WasapiSharedPlayer(),
+                WasapiExclusivePlayer.PlayerName => new WasapiExclusivePlayer(),
+                _ => new NullPlayer(),
+            };
         }
 
         public static MainWindow? MainWindow { get; private set; }
 
         public static Gamepad Gamepad { get; private set; }
 
-        private static SoundPlayer.ISoundPlayer soundPlayer;
-        public static SoundPlayer.ISoundPlayer SoundPlayer { get => soundPlayer; }
+        private static ISoundPlayer soundPlayer;
+        public static ISoundPlayer SoundPlayer
+        {
+            get => soundPlayer;
+            set
+            {
+                soundPlayer = value;
+                SoundPlayerChanged?.Invoke(null, EventArgs.Empty);
+            }
+        }
+        private static ISoundPlayer.IDevice? soundDevice;
+        public static ISoundPlayer.IDevice? SoundDevice
+        {
+            get => soundDevice;
+            set
+            {
+                soundDevice = value; SoundDeviceChanged?.Invoke(null, EventArgs.Empty);
+            }
+        }
 
-        public static LoopbackCapture LoopbackCapture { get; private set; } = new LoopbackCapture();
+        public static event EventHandler? SoundPlayerChanged;
+        public static event EventHandler? SoundDeviceChanged;
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
         public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents();
@@ -127,9 +153,6 @@ namespace APlayer
 
             MainWindow = new MainWindow();
             MainWindow.Activate();
-
-            await soundPlayer.Initialize();
-//            soundPlayer.InsertPeakDetector();
 
         }
 
