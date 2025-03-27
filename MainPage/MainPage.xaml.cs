@@ -101,7 +101,7 @@ namespace APlayer
 
         private void App_SoundDeviceChanged(object? sender, EventArgs e)
         {
-//            App.SoundPlayer.ChangeDevice(App.SoundDevice);
+            App.SoundPlayer.ChangeDevice(App.SoundDevice);
         }
 
 
@@ -120,6 +120,8 @@ namespace APlayer
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
 
+            App.SoundDeviceChanged -= App_SoundDeviceChanged;
+
             //            App.Gamepad.ResetAssign();
             App.AssignDataChanged -= App_AssignDataChanged;
 
@@ -127,6 +129,7 @@ namespace APlayer
             App.SoundPlayer.CurrentIndexChanged -= SoundPlayer_CurrentIndexChanged;
             App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
             App.SoundPlayer.FrameReported -= SoundPlayer_FrameReported;
+
         }
 
         private Action GetGamepadAction(GamepadAssign.MainPageGamepadAction act)

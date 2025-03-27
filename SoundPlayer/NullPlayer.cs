@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static APlayer.SoundPlayer.ISoundPlayer;
 using Windows.Storage;
 
@@ -16,6 +13,8 @@ namespace APlayer.SoundPlayer
 
         public bool Initialize(IDevice? device = null) { return true; }
         public void Terminalize() { }
+
+        public bool ChangeDevice(IDevice device) { return true; }
 
         public IDevice? OutputDevice { get => null; }
 

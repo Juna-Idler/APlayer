@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static APlayer.SoundPlayer.ISoundPlayer;
 using Windows.Storage;
 
@@ -148,6 +146,49 @@ namespace APlayer.SoundPlayer
             State = PlayerState.Null;
         }
 
+        public bool ChangeDevice(IDevice? device)
+        {
+            if (WasapiOutput == null)
+                return false;
+
+            switch (State)
+            {
+                case PlayerState.Empty:
+                    return Initialize(device);
+
+                case PlayerState.Stoped:
+                    WasapiOutput.Dispose();
+                    outputDevice = device as Device;
+                    Provider = null;
+                    return CreateWasapi();
+
+                case PlayerState.Playing:
+                case PlayerState.Paused:
+                    {
+                        if (Provider == null)
+                            throw new InvalidOperationException();
+
+                        var state = State;
+                        var pos = GetPosition();
+                        Stop();
+                        Provider = null;
+                        WasapiOutput.Dispose();
+                        outputDevice = device as Device;
+                        if (!CreateWasapi())
+                            return false;
+
+                        Start(pos);
+                        if (state == PlayerState.Paused)
+                        {
+                            Pause();
+                        }
+                    }
+                    return true;
+                default:
+                    return false;
+            }
+
+        }
 
 
         public void SetPlaylist(IEnumerable<IStorageFile> list, int index = 0)
@@ -225,12 +266,11 @@ namespace APlayer.SoundPlayer
                 currentTrack = playlist.First();
                 CurrentIndexChanged?.Invoke(this, 0);
             }
+            if (start_time > currentTrack.Duration)
+                start_time = currentTrack.Duration;
             currentTrack.Reader.CurrentTime = start_time;
 
-            if (Provider != null && Provider.ReplaceAudioFile(currentTrack.Reader))
-            {
-            }
-            else
+            if (Provider == null || !Provider.ReplaceAudioFile(currentTrack.Reader))
             {
                 if (Provider != null)
                 {
@@ -256,6 +296,7 @@ namespace APlayer.SoundPlayer
 
             WasapiOutput.Play();
             Stopwatch.Start();
+            BaseTime = currentTrack.Reader.CurrentTime;
             if (State != PlayerState.Playing)
                 StateChanged?.Invoke(this, PlayerState.Playing);
             State = PlayerState.Playing;
@@ -333,10 +374,10 @@ namespace APlayer.SoundPlayer
         {
             if (currentTrack == null)
                 return;
-            if (time > (currentTrack as ITrack).Duration)
+            if (time > currentTrack.Duration)
                 return;
             currentTrack.Reader.CurrentTime = time;
-            BaseTime = time;
+            BaseTime = currentTrack.Reader.CurrentTime;
             Stopwatch.Reset();
             if (State == PlayerState.Playing)
             {

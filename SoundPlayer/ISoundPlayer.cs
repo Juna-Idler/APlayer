@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace APlayer.SoundPlayer
@@ -17,7 +16,7 @@ namespace APlayer.SoundPlayer
         public bool Initialize(IDevice? device = null);
         public void Terminalize();
 
-//        public bool ChangeDevice(IDevice? device);
+        public bool ChangeDevice(IDevice? device);
 
         public IDevice? OutputDevice { get; }
 
