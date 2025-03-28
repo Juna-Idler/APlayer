@@ -96,9 +96,6 @@ namespace APlayer
             AppTitleTextBlock.Text = AppInfo.Current.DisplayInfo.DisplayName;
             TitleHeightRow.Height = new GridLength(AppWindow.TitleBar.Height / this.Content.RasterizationScale);
 
-            //            Activated += MainWindow_Activated;
-
-
             MainFrame.Navigate(typeof(StartPage.StartPage));
         }
 
@@ -124,13 +121,16 @@ namespace APlayer
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                AppTitleTextBlock.Foreground =
-                    (SolidColorBrush)App.Current.Resources["WindowCaptionForegroundDisabled"];
+                App.Gamepad.Stop();
+//                var activeTitleTextBrush = AppTitleTextBlock.Foreground;
+//                AppTitleTextBlock.Foreground =
+//                    (SolidColorBrush)App.Current.Resources["WindowCaptionForegroundDisabled"];
             }
             else
             {
-                AppTitleTextBlock.Foreground =
-                    (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
+                App.Gamepad.Start();
+//                AppTitleTextBlock.Foreground =
+//                    (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
             }
         }
 

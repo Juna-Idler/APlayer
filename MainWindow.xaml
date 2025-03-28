@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="APlayer"
-    Closed="Window_Closed">
+    Closed="Window_Closed" Activated="MainWindow_Activated">
     <Grid>
         <Grid.Resources>
             <Flyout x:Key="SettingFlyout">

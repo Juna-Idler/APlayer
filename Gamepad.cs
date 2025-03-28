@@ -31,6 +31,8 @@ namespace APlayer
         public Assign PrimaryAssign { get; private set; } = NullAssign;
         public Assign ShiftedAssign { get; private set; } = NullAssign;
 
+        public void Stop() {  Generator.Stop(); }
+        public void Start() { Generator.Start(); }
 
         public void SetAssign(Assign normal,Assign shifted)
         {
