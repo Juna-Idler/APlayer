@@ -95,5 +95,6 @@
             </Button>
         </Grid>
         <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1"  />
+        <local:VideoViewControl x:Name="VideoView" Visibility="Collapsed" Grid.Row="1" />
     </Grid>
 </Window>

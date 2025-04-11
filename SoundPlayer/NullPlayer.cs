@@ -14,9 +14,9 @@ namespace APlayer.SoundPlayer
         public bool Initialize(IDevice? device = null) { return true; }
         public void Terminalize() { }
 
-        public bool ChangeDevice(IDevice device) { return true; }
+        public bool ChangeDevice(IDevice? device) { return true; }
 
-        public IDevice? OutputDevice { get => null; }
+        public IDevice? OutputDevice => null;
 
         public event EventHandler<(IReadOnlyList<ITrack> list, int index)>? PlaylistChanged;
         public event EventHandler<int>? CurrentIndexChanged;

@@ -20,7 +20,7 @@ namespace APlayer
         public event EventHandler<FilerViewControl?>? RequestedBack;
         public event EventHandler<FilerViewControl>? RequestedFolder;
 
-        public event EventHandler<(List<FolderItem>,FolderItem)>? RequestedFile;
+        public event EventHandler<(List<FolderItem>, FolderItem)>? RequestedFile;
 
 
 
@@ -175,6 +175,8 @@ namespace APlayer
                     Type = ItemType.Text;
                 else if (file.ContentType == "application/pdf")
                     Type = ItemType.Pdf;
+                else if (file.ContentType.StartsWith("video"))
+                    Type = ItemType.Video;
                 else
                     Type = ItemType.Unknown;
                 Extention = file.FileType.ToUpper();
@@ -190,7 +192,7 @@ namespace APlayer
         public IStorageItem Item { get; }
         public FilerViewControl? Created { get; set; } = null;
 
-        public enum ItemType {Unknown, Folder, Audio, Image, Text, Pdf }
+        public enum ItemType { Unknown, Folder, Audio, Image, Text, Pdf, Video }
 
         public ItemType Type { get; }
 

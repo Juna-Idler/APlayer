@@ -29,6 +29,7 @@
     <None Remove="StartPage\StartPage.xaml" />
     <None Remove="StartPage\TabFolderListControl.xaml" />
     <None Remove="TextViewPage.xaml" />
+    <None Remove="VideoViewControl.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -171,5 +172,10 @@
     <TrimmerRootAssembly Include="NAudio" />
     <TrimmerRootAssembly Include="NAudio.Wasapi" />
     <TrimmerRootAssembly Include="NAudio.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="VideoViewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>  
 </Project>

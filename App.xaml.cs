@@ -54,7 +54,7 @@ namespace APlayer
 
 
             var sound_api = local.Values["SoundAPI"] as string ?? WasapiSharedPlayer.PlayerName;
-            SoundPlayer = sound_api switch
+            soundPlayer = sound_api switch
             {
                 WasapiSharedPlayer.PlayerName => new WasapiSharedPlayer(),
                 WasapiExclusivePlayer.PlayerName => new WasapiExclusivePlayer(),
@@ -88,6 +88,13 @@ namespace APlayer
 
         public static event EventHandler? SoundPlayerChanged;
         public static event EventHandler? SoundDeviceChanged;
+
+        public static async void OpenVideoView(IStorageFile file)
+        {
+            if (MainWindow == null)
+                return;
+            bool _ = await MainWindow.OpenVideoView(file, SoundDevice?.Name);
+        }
 
         public static StorageFolder? SaveFolder { get; private set; } = null;
         public static SaveData.Contents SavedContents { get; private set; } = new SaveData.Contents();

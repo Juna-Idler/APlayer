@@ -110,7 +110,7 @@ namespace APlayer
             {
                 case FolderItem.ItemType.Audio:
                     {
-                        Frame.Navigate(typeof(PlaylistPage),(Actions,e.folder,e.file),
+                        Frame.Navigate(typeof(PlaylistPage), (Actions, e.folder, e.file),
                             new SlideNavigationTransitionInfo()
                             { Effect = SlideNavigationTransitionEffect.FromBottom });
                     }
@@ -136,8 +136,13 @@ namespace APlayer
                             { Effect = SlideNavigationTransitionEffect.FromRight });
                     }
                     break;
+                case FolderItem.ItemType.Video:
+                    {
+                        if (e.file.Item is IStorageFile file)
+                            App.OpenVideoView(file);
+                    }
+                    break;
             }
-
         }
 
         private void Fvc_RequestedBack(object? sender, FilerViewControl? e)

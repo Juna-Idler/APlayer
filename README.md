@@ -11,3 +11,9 @@
 WinUI3で作ってみたのでMicrosoft Storeに出してみた。  
 https://apps.microsoft.com/detail/9N0PGPT0J6XH?hl=ja-jp&gl=JP&ocid=pdpshare  
 試しに有料設定してみたが、特に意味はない。
+
+
+
+C#でWASAPIを使うためにNAudioを使用しています。  
+https://github.com/naudio/NAudio?tab=MIT-1-ov-file#readme
+

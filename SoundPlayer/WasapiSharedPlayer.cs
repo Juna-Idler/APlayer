@@ -288,7 +288,7 @@ namespace APlayer.SoundPlayer
                     WasapiOutput.Init(Provider);
                     WasapiOutput.PlaybackStopped += WasapiOutput_PlaybackStopped;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return;
                 }
