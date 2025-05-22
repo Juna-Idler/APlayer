@@ -178,7 +178,12 @@ namespace APlayer
                 else if (file.ContentType.StartsWith("video"))
                     Type = ItemType.Video;
                 else
+                {
                     Type = ItemType.Unknown;
+
+                    if (file.FileType.Equals(".webp", StringComparison.OrdinalIgnoreCase))
+                        Type = ItemType.Image;
+                }
                 Extention = file.FileType.ToUpper();
             }
             else

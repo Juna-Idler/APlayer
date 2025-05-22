@@ -113,6 +113,9 @@ namespace APlayer.StartPage
 
         private void TabFolderListControl_SelectedFolder(object sender, (SaveData.Folder, SaveData.List) e)
         {
+            if (!Directory.Exists(e.Item1.Path))
+                return;
+
             this.Frame.Navigate(typeof(MainPage), e,
                 new SlideNavigationTransitionInfo()
                 { Effect = SlideNavigationTransitionEffect.FromBottom });
