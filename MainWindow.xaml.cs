@@ -99,12 +99,28 @@ namespace APlayer
             TitleHeightRow.Height = new GridLength(AppWindow.TitleBar.Height / this.Content.RasterizationScale);
 
             MainFrame.Navigate(typeof(StartPage.StartPage));
+
+            AppWindow.Changed += AppWindow_Changed;
         }
 
+        private void AppWindow_Changed(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
+        {
+            if (args.DidPresenterChange)
+            {
+                if (AppWindow.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen)
+                {
+                    FullScreenIcon.Glyph = char.ConvertFromUtf32(0xE73F);
+                }
+                else
+                {
+                    FullScreenIcon.Glyph = char.ConvertFromUtf32(0xE740);
+                }
+            }
+        }
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
         {
-            if (ExtendsContentIntoTitleBar == true)
+           if (ExtendsContentIntoTitleBar == true)
             {
                 // Set the initial interactive regions.
                 SetRegionsForCustomTitleBar();
@@ -141,14 +157,10 @@ namespace APlayer
             // Specify the interactive regions of the title bar.
 
             double scaleAdjustment = AppTitleBar.XamlRoot.RasterizationScale;
-
-            RightPaddingColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scaleAdjustment);
-            LeftPaddingColumn.Width = new GridLength(AppWindow.TitleBar.LeftInset / scaleAdjustment);
-
-            var setting_rect = GetRect(SettingButton, scaleAdjustment);
-            var device_rect = GetRect(OutputDevicePanel, scaleAdjustment);
             var nonClientInputSrc = InputNonClientPointerSource.GetForWindowId(this.AppWindow.Id);
-            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, [setting_rect,device_rect]);
+
+            RectInt32 rect = GetRect(TitlePanel, scaleAdjustment);
+            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, [rect]);
         }
 
         private Windows.Graphics.RectInt32 GetRect(FrameworkElement control,double scale)

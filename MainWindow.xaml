@@ -23,7 +23,6 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -60,7 +59,6 @@
                     <Button x:Name="GamepadSettings" Grid.Row="6" Grid.ColumnSpan="2" Content="Gamepad Assign" Click="GamepadSettings_Click" HorizontalAlignment="Stretch" />
 
                     <Button Content="Open Settings Folder" x:Name="LocalFolderPath" Grid.Row="7" Grid.ColumnSpan="2" Click="LocalFolderPath_Click" ToolTipService.ToolTip="{x:Bind LocalFolder}" HorizontalAlignment="Stretch" />
-                    <Button Content="Full Screen" x:Name="FullScreen" Grid.Row="8" Grid.ColumnSpan="2" Click="FullScreen_Click" HorizontalAlignment="Stretch" />
                 </Grid>
 
             </Flyout>
@@ -74,7 +72,6 @@
                 <ColumnDefinition x:Name="LeftPaddingColumn" />
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition x:Name="RightPaddingColumn" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="AppTitleTextBlock" Grid.Column="1"
@@ -82,17 +79,22 @@
                        VerticalAlignment="Center"
                        Margin="16,0,0,0" />
 
-            <StackPanel x:Name="OutputDevicePanel" Orientation="Horizontal" Grid.Column="2">
+            <StackPanel x:Name="TitlePanel" Orientation="Horizontal" Grid.Column="2">
                 <Button VerticalAlignment="Center" Click="RefreshButton_Click" ToolTipService.ToolTip="Refresh device list">
                     <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE72C;" FontSize="18"/>
                 </Button>
                 <ComboBox x:Name="OutputDeviceList" VerticalAlignment="Center" FontSize="14" Width="200"
                       ToolTipService.ToolTip="Output Device" />
+                <Button x:Name="SettingButton" Grid.Column="3" VerticalAlignment="Stretch" Flyout="{StaticResource SettingFlyout}" >
+                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE713;" FontSize="18"/>
+                </Button>
+
+                <Button x:Name="FullScreenButton" Grid.Column="4" VerticalAlignment="Stretch" Click="FullScreen_Click" >
+                    <FontIcon x:Name="FullScreenIcon" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE740;" FontSize="18"/>
+                </Button>
             </StackPanel>
 
-            <Button x:Name="SettingButton" Grid.Column="3" VerticalAlignment="Stretch" Flyout="{StaticResource SettingFlyout}" >
-                <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE713;" FontSize="18"/>
-            </Button>
+
         </Grid>
         <Frame x:Name="MainFrame" IsNavigationStackEnabled="false" Grid.Row="1"  />
         <local:VideoViewControl x:Name="VideoView" Visibility="Collapsed" Grid.Row="1" />
