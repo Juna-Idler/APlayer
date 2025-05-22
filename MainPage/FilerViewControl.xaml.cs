@@ -145,6 +145,15 @@ namespace APlayer
             if (sender is MenuFlyoutItem { DataContext: FolderItem folder })
                 SavedList.Folders.Add(new SaveData.Folder(folder.Name, folder.Item.Path));
         }
+
+        private async void MenuFlyoutItemOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem { DataContext: FolderItem folder })
+            {
+                Uri uri = new(folder.Item.Path);
+                await Windows.System.Launcher.LaunchUriAsync(uri);
+            }
+        }
     }
     public partial class FolderItem : INotifyPropertyChanged
     {

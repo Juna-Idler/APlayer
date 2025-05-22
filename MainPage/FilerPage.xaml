@@ -26,6 +26,12 @@
                 </Button>
             </Grid>
         </Flyout>
+
+        <MenuFlyout x:Key="BreadcrumbBarMenu">
+            <MenuFlyoutItem Text="Open Root Folder" Click="MenuFlyoutItemOpenFolder_Click" />
+        </MenuFlyout>
+
+
     </Page.Resources>
 
     <Grid x:Name="Grid">
@@ -42,7 +48,7 @@
                 Style="{StaticResource NavigationBackButtonNormalStyle}"
                 ToolTipService.ToolTip="Back"/>
         <BreadcrumbBar x:Name="FolderBreadcrumbBar" Grid.Column="1" VerticalAlignment="Center"
-                       ItemClicked="FolderBreadcrumbBar_ItemClicked" >
+                       ItemClicked="FolderBreadcrumbBar_ItemClicked" ContextFlyout="{StaticResource BreadcrumbBarMenu}" >
         </BreadcrumbBar>
         <!-- Insert FilerViewControl  -->
     </Grid>

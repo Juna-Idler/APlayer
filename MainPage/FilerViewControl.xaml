@@ -10,6 +10,7 @@
 
     <UserControl.Resources>
         <MenuFlyout x:Key="FolderMenu">
+            <MenuFlyoutItem Text="Open Folder" Click="MenuFlyoutItemOpenFolder_Click" />
             <MenuFlyoutItem Text="Add StartPage" Click="MenuFlyoutItemAddStartPage_Click" />
         </MenuFlyout>
         

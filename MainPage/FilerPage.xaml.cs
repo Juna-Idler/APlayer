@@ -273,6 +273,14 @@ namespace APlayer
                 e.Handled = true;
             }
         }
+
+        private async void MenuFlyoutItemOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (Folder is null)
+                return;
+            Uri uri = new(Folder.Path);
+            await Windows.System.Launcher.LaunchUriAsync(uri);
+        }
     }
 
 
