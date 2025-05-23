@@ -11,6 +11,7 @@ using Microsoft.UI.Input;
 using Windows.Graphics;
 using APlayer.SoundPlayer;
 using System.Threading.Tasks;
+using Microsoft.UI.Windowing;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -116,6 +117,19 @@ namespace APlayer
                     FullScreenIcon.Glyph = char.ConvertFromUtf32(0xE740);
                 }
             }
+
+/*            if (args.DidSizeChange || args.DidPositionChange)
+            {
+                if (AppWindow.Presenter is OverlappedPresenter presenter)
+                {
+                    if (presenter.State == OverlappedPresenterState.Restored)
+                    {
+
+                    }
+                }
+            }
+*/
+
         }
 
         private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
@@ -241,15 +255,18 @@ namespace APlayer
                 localSettings.Values["ControlPanel"] = ControlPanel.IsOn;
             }
 
-
-            PointInt32 pos = AppWindow.Position;
-            SizeInt32 size = AppWindow.Size;
-            Rect rect = new(pos.X,pos.Y,size.Width,size.Height);
-            var old_rect = localSettings.Values["WindowPosSize"] as Rect?;
-            if (old_rect == null || old_rect != rect)
+            if (AppWindow.Presenter is OverlappedPresenter overlapped && overlapped.State == OverlappedPresenterState.Restored)
             {
-                localSettings.Values["WindowPosSize"] = rect;
+                PointInt32 pos = AppWindow.Position;
+                SizeInt32 size = AppWindow.Size;
+                Rect rect = new(pos.X, pos.Y, size.Width, size.Height);
+                var old_rect = localSettings.Values["WindowPosSize"] as Rect?;
+                if (old_rect == null || old_rect != rect)
+                {
+                    localSettings.Values["WindowPosSize"] = rect;
+                }
             }
+
 
             if (App.SaveFolder != null)
             {
@@ -314,16 +331,14 @@ namespace APlayer
 
         private void FullScreen_Click(object sender, RoutedEventArgs e)
         {
-            if (App.MainWindow != null)
+            if (AppWindow.Presenter.Kind != Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen)
             {
-                if (App.MainWindow.AppWindow.Presenter.Kind != Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen)
-                {
-                    App.MainWindow.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
-                }
-                else
-                {
-                    App.MainWindow.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped);
-                }
+                (AppWindow.Presenter as OverlappedPresenter)?.Restore();
+                AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
+            }
+            else
+            {
+                AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped);
             }
         }
 
