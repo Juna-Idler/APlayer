@@ -84,23 +84,26 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Button x:Name="ControlPanelSwitch" Grid.RowSpan="2" VerticalAlignment="Bottom" Click="ControlPanelSwitch_Click" >
+                    <Button x:Name="ControlPanelSwitch" VerticalAlignment="Bottom" Click="ControlPanelSwitch_Click" >
                         <FontIcon Glyph="&#xE70D;"  FontFamily="{StaticResource SymbolThemeFontFamily}"/>
                     </Button>
-                    <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
-                            Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
-                            TickFrequency="60" TickPlacement="BottomRight"
-                            Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center"
-                            ValueChanged="PlayingPosition_ValueChanged"/>
-                    <TextBlock Grid.Column="2"
-                                   Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}"
-                                   TextAlignment="Right" VerticalAlignment="Bottom"
-                                   FontSize="18"  Style="{StaticResource MonospacedFont}" />
-                    <TextBlock Grid.Column="2" Grid.Row="1"
-                                   Text="{x:Bind viewModel.DurationString,Mode=OneWay}"
-                                   FontSize="18" TextAlignment="Right" VerticalAlignment="Bottom" Style="{StaticResource MonospacedFont}" />
+                    <StackPanel Orientation="Vertical" Grid.Column="1">
+                        <local:SliderMarkerControl x:Name="Marker"  MarkerTopOffset="16" MarkerBottomOffset="32"/>
+                        <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
+                                Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
+                                TickFrequency="60" TickPlacement="BottomRight"
+                                Grid.Column="1" VerticalAlignment="Center"
+                                ValueChanged="PlayingPosition_ValueChanged"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Vertical" Grid.Column="2" VerticalAlignment="Bottom">
+                        <TextBlock Text="{x:Bind viewModel.PlayingPositionString,Mode=OneWay}"
+                                       TextAlignment="Right" VerticalAlignment="Bottom"
+                                       FontSize="18"  Style="{StaticResource MonospacedFont}" />
+                        <TextBlock Text="{x:Bind viewModel.DurationString,Mode=OneWay}"
+                                       FontSize="18" TextAlignment="Right" VerticalAlignment="Bottom" Style="{StaticResource MonospacedFont}" />
+                    </StackPanel>
 
                 </Grid>
                 <Grid x:Name="ControlPanel" Visibility="Visible">

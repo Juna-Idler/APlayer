@@ -4,6 +4,7 @@ using APlayer.StartPage;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Concurrent;
@@ -52,6 +53,7 @@ namespace APlayer
         public MainPage()
         {
             this.InitializeComponent();
+            PlayingPosition.ThumbToolTipValueConverter = new TimeSliderValueConverter();
 
             VolumeSlider.Maximum = GainMax;
             VolumeSlider.Minimum = GainMin;
@@ -66,6 +68,7 @@ namespace APlayer
             Timer.Interval = TimeSpan.FromMicroseconds(100);
             Timer.Tick += Timer_Tick;
             Timer.Start();
+
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -290,12 +293,14 @@ namespace APlayer
                     viewModel.PlayingTitle = "";
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = TimeSpan.Zero;
+                    Marker.SetMarks([], viewModel.Duration);
                 }
                 else
                 {
                     viewModel.PlayingTitle = e.list[e.index].Name;
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = e.list[e.index].Duration;
+                    Marker.SetMarks([], viewModel.Duration);
                 }
             });
         }
@@ -310,12 +315,14 @@ namespace APlayer
                     viewModel.PlayingTitle = "";
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = TimeSpan.Zero;
+                    Marker.SetMarks([], viewModel.Duration);
                 }
                 else
                 {
                     viewModel.PlayingTitle = viewModel.Playlist[e].Name;
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = viewModel.Playlist[e].Duration;
+                    Marker.SetMarks([], viewModel.Duration);
                 }
             });
         }
@@ -546,4 +553,24 @@ namespace APlayer
             }
         }
     }
+
+    public partial class TimeSliderValueConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return Convert((double)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static string Convert(double seconds)
+        {
+            TimeSpan time = TimeSpan.FromSeconds(seconds);
+            return $"{Math.Floor(time.TotalMinutes)}:{time.Seconds:d2}";
+        }
+    }
+
 }
