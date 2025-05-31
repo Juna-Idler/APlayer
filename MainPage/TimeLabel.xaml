@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="APlayer.TimeLabel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:APlayer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    >
+    
+    <Canvas>
+        <Rectangle Width="2" Height="{x:Bind MarkerHeight}" Canvas.Left="0" Canvas.Top="{x:Bind MarkerTopOffset}"
+                   Fill="{ThemeResource AccentFillColorDefaultBrush}" IsHitTestVisible="False" />
+        <Border x:Name="Frame" BorderThickness="1" Padding="2,0"
+                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                SizeChanged="Frame_SizeChanged"
+                ContextRequested="Frame_ContextRequested"
+                >
+            <TextBlock x:Name="LabelText" Text="0:00" IsHitTestVisible="False" />
+        </Border>
+
+    </Canvas>
+</UserControl>

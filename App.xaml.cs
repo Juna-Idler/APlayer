@@ -102,6 +102,8 @@ namespace APlayer
         public static List<string> DeleteLists { get; private set; } = [];
         public static SaveData.List? CurrentList { get; set; } = null;
 
+        public static SaveData.MarksData MarksData { get; set; } = new MarksData();
+
         public static SaveData.GamepadAssign.SaveData AssignData { get; private set; } = new();
 
         public static void SetAssignData(SaveData.GamepadAssign.SaveData data,Type lastDataType)
@@ -157,6 +159,8 @@ namespace APlayer
                 }
             }
             SavedContents.Indexes.Sort((a, b) => a.Order - b.Order);
+
+            MarksData.Folder = await local_folder.CreateFolderAsync("MarksData", Windows.Storage.CreationCollisionOption.OpenIfExists);
 
             MainWindow = new MainWindow();
             MainWindow.Activate();

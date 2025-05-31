@@ -213,7 +213,7 @@ namespace APlayer
             App.Gamepad.UserIndex = (uint)XInputUser.SelectedIndex;
         }
 
-        private void Window_Closed(object sender, WindowEventArgs args)
+        private async void Window_Closed(object sender, WindowEventArgs args)
         {
             ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -281,6 +281,9 @@ namespace APlayer
                 _ = SaveData.SaveData.DeleteList(App.SaveFolder, App.DeleteLists);
                 App.DeleteLists.Clear();
             }
+
+            await App.MarksData.Save();
+
         }
 
         private async void GamepadSettings_Click(object sender, RoutedEventArgs e)

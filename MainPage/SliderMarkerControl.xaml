@@ -10,7 +10,7 @@
     Loaded="UserControl_Loaded"
     SizeChanged="UserControl_SizeChanged">
 
-    <Grid Background="Transparent" >
+    <Grid Background="Transparent">
         <Grid.ContextFlyout>
             <MenuFlyout x:Name="MenuFlyout">
             </MenuFlyout>
@@ -30,10 +30,11 @@
                 Maximum="100"
                 TickFrequency="60"
                 TickPlacement="Inline"
+                IsThumbToolTipEnabled="False"
                 
                 ValueChanged="MarkerSlider_ValueChanged"
+                PointerWheelChanged="MarkerSlider_PointerWheelChanged"
                 ContextRequested="MarkerSlider_ContextRequested"
-             
         />
 
     </Grid>

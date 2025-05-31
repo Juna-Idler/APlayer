@@ -89,7 +89,8 @@
                         <FontIcon Glyph="&#xE70D;"  FontFamily="{StaticResource SymbolThemeFontFamily}"/>
                     </Button>
                     <StackPanel Orientation="Vertical" Grid.Column="1">
-                        <local:SliderMarkerControl x:Name="Marker"  MarkerTopOffset="16" MarkerBottomOffset="32"/>
+                        <local:SliderMarkerControl x:Name="Marker" 
+                                                   Updated="Marker_Updated" />
                         <Slider x:Name="PlayingPosition" Value="{x:Bind viewModel.PlayingPosition.TotalSeconds,Mode=OneWay}"
                                 Maximum="{x:Bind viewModel.Duration.TotalSeconds,Mode=OneWay}"
                                 TickFrequency="60" TickPlacement="BottomRight"

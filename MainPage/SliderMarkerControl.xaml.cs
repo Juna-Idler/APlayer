@@ -1,20 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI;
-using Windows.UI.Input.Inking;
-using static System.Net.Mime.MediaTypeNames;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -23,8 +14,13 @@ namespace APlayer
 {
     public sealed partial class SliderMarkerControl : UserControl
     {
-        public int MarkerTopOffset { get; set; } = 0;
-        public int MarkerBottomOffset { get; set; } = 0;
+        public event EventHandler<TimeSpan[]>? Updated;
+
+        public int MarkerTopOffset { get; set; } = 20;
+        public int MarkerBottomOffset { get; set; } = 24;
+
+        public int LabelOffset { get; set; } = 8;
+        public int EdittingLabelOffset { get; set; } = -16;
 
         public TimeSpan Duration
         {
@@ -32,11 +28,12 @@ namespace APlayer
             set => MarkerSlider.Maximum = value.TotalSeconds;
         }
 
-        class Mark(int seconds, MenuFlyoutItem menuItem, Microsoft.UI.Xaml.Shapes.Rectangle rectangle)
+        class Mark(TimeSpan time, MenuFlyoutItem menuItem, APlayer.TimeLabel timeLabel)
         {
-            public int Seconds = seconds;
+            public TimeSpan Time = time;
             public MenuFlyoutItem MenuItem = menuItem;
-            public Microsoft.UI.Xaml.Shapes.Rectangle Rectangle = rectangle;
+
+            public APlayer.TimeLabel TimeLabel = timeLabel;
         }
 
         private double OffsetLeft = 0;
@@ -63,22 +60,28 @@ namespace APlayer
         {
             var menu = new MenuFlyoutItem();
             menu.Text = "New";
-            var rect = new Microsoft.UI.Xaml.Shapes.Rectangle
+            var label = new APlayer.TimeLabel
             {
-                Width = 2,
-                Height = 32 - MarkerTopOffset + MarkerBottomOffset,
-                Fill = new SolidColorBrush((Windows.UI.Color)Resources["SystemAccentColor"])
+                Label = "0:00",
+                MarkerTopOffset = MarkerTopOffset,
+                MarkerBottomOffset = MarkerBottomOffset,
             };
-            Canvas.SetTop(rect,MarkerTopOffset);
-            Canvas.SetLeft(rect, OffsetLeft);
-            MarkerCanvas.Children.Add(rect);
-            var mark = new Mark(0, menu, rect);
+            label.TimeLabelContextRequested += Label_TimeLabelContextRequested;
+            Canvas.SetLeft(label, OffsetLeft);
+            MarkerCanvas.Children.Add(label);
+
+            var mark = new Mark(TimeSpan.Zero, menu, label);
             Marks.Add(mark);
 
             Editing = mark;
             MarkerSlider.Value = 0;
             MarkerSlider.Visibility = Visibility.Visible;
+            foreach (var item in Marks)
+            {
+                Canvas.SetTop(item.TimeLabel, EdittingLabelOffset);
+            }
         }
+
 
         public void SetMarks(TimeSpan[] marks, TimeSpan duration)
         {
@@ -99,31 +102,58 @@ namespace APlayer
                 };
                 menu.Click += Edit_Click;
                 MenuFlyout.Items.Add(menu);
-                var rect = new Microsoft.UI.Xaml.Shapes.Rectangle
+                var label = new TimeLabel
                 {
-                    Width = 2,
-                    Height = 32 - MarkerTopOffset + MarkerBottomOffset,
-                    Fill = new SolidColorBrush((Windows.UI.Color)Resources["SystemAccentColor"])
+                    Label = menu.Text,
+                    MarkerTopOffset = MarkerTopOffset,
+                    MarkerBottomOffset = MarkerBottomOffset,
                 };
-                Canvas.SetTop(rect, MarkerTopOffset);
+                label.TimeLabelContextRequested += Label_TimeLabelContextRequested;
                 var rate = (mark.TotalSeconds - MarkerSlider.Minimum) / (MarkerSlider.Maximum - MarkerSlider.Minimum);
-                Canvas.SetLeft(rect, (MarkerSlider.ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
-                MarkerCanvas.Children.Add(rect);
-                Marks.Add(new Mark(((int)mark.TotalSeconds), menu, rect));
+                Canvas.SetLeft(label, (ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
+                Canvas.SetTop(label, LabelOffset);
+                MarkerCanvas.Children.Add(label);
+                Marks.Add(new Mark(mark, menu, label));
             }
 
         }
+
+        private void Label_TimeLabelContextRequested(object? sender, EventArgs e)
+        {
+            if (Editing != null)
+            {
+                UnshiftEditMode();
+                return;
+            }
+            if (sender is TimeLabel label)
+            {
+                var find = Marks.Find((item) => { return item.TimeLabel == label; });
+                if (find != null)
+                {
+                    ShiftEditMode(find);
+                }
+            }
+        }
+        private void ShiftEditMode(Mark mark)
+        {
+            Editing = mark;
+            MarkerSlider.Value = Editing.Time.TotalSeconds;
+            MarkerSlider.Visibility = Visibility.Visible;
+
+            foreach (var item in Marks)
+            {
+                Canvas.SetTop(item.TimeLabel, EdittingLabelOffset);
+            }
+        }
+
         private void Edit_Click(object sender, RoutedEventArgs e)
         {
             var find = Marks.Find((item) => { return item.MenuItem == sender as MenuFlyoutItem; });
             if (find != null)
             {
-                Editing = find;
-                MarkerSlider.Value = Editing.Seconds;
-                MarkerSlider.Visibility = Visibility.Visible;
+                ShiftEditMode(find);
             }
         }
-
 
 
         private void MarkerSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
@@ -131,22 +161,28 @@ namespace APlayer
             if (Editing != null)
             {
                 var val = Math.Clamp(e.NewValue, MarkerSlider.Minimum, MarkerSlider.Maximum);
-                Editing.Seconds = (int)val;
+                Editing.Time = TimeSpan.FromSeconds(val);
                 var rate = (val - MarkerSlider.Minimum) / (MarkerSlider.Maximum - MarkerSlider.Minimum);
 
-                Canvas.SetLeft(Editing.Rectangle, (MarkerSlider.ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
+                Canvas.SetLeft(Editing.TimeLabel, (ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
+                Editing.TimeLabel.Label = TimeSliderValueConverter.Convert(Editing.Time);
             }
-
         }
 
         private void MarkerSlider_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
         {
+            UnshiftEditMode();
+            args.Handled = true;
+        }
+
+        private void UnshiftEditMode()
+        {
             if (Editing != null)
             {
-                if (Editing.Seconds == 0)
+                if (Editing.Time == TimeSpan.Zero)
                 {
                     MenuFlyout.Items.Remove(Editing.MenuItem);
-                    MarkerCanvas.Children.Remove(Editing.Rectangle);
+                    MarkerCanvas.Children.Remove(Editing.TimeLabel);
                     Marks.Remove(Editing);
                 }
                 else
@@ -156,14 +192,18 @@ namespace APlayer
                         Editing.MenuItem.Click += Edit_Click;
                         MenuFlyout.Items.Add(Editing.MenuItem);
                     }
-                    Editing.MenuItem.Text = TimeSliderValueConverter.Convert(Editing.Seconds);
+                    Editing.MenuItem.Text = TimeSliderValueConverter.Convert(Editing.Time);
                 }
+                Updated?.Invoke(this, [.. Marks.Select(e => e.Time)]);
                 Editing = null;
+                foreach (var item in Marks)
+                {
+                    Canvas.SetTop(item.TimeLabel, LabelOffset);
+                }
             }
             MarkerSlider.Visibility = Visibility.Collapsed;
-            args.Handled = true;
-
         }
+
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
@@ -204,13 +244,25 @@ namespace APlayer
         {
             foreach (var mark in Marks)
             {
-                var val = Math.Clamp(mark.Seconds, MarkerSlider.Minimum, MarkerSlider.Maximum);
+                var val = Math.Clamp(mark.Time.TotalSeconds, MarkerSlider.Minimum, MarkerSlider.Maximum);
                 var rate = (val - MarkerSlider.Minimum) / (MarkerSlider.Maximum - MarkerSlider.Minimum);
 
-                Canvas.SetLeft(mark.Rectangle, (ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
+                Canvas.SetLeft(mark.TimeLabel, (ActualWidth - OffsetLeft - OffsetRight) * rate + OffsetLeft);
             }
 
         }
 
+        private void MarkerSlider_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+        {
+            var pp = e.GetCurrentPoint((UIElement)sender);
+            if (pp.Properties.MouseWheelDelta > 0)
+            {
+                MarkerSlider.Value += 1;
+            }
+            else
+            {
+                MarkerSlider.Value -= 1;
+            }
+        }
     }
 }

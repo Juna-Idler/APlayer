@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Windows.Graphics;
@@ -34,6 +35,8 @@ namespace APlayer
 
         private SaveData.Folder? SavedFolder = null;
         private SaveData.List? SavedList = null;
+
+        private SaveData.MarksFile? MarksFile = null;
 
         public class GamepadActionDelegate
         {
@@ -81,6 +84,15 @@ namespace APlayer
             {
                 var folder = await StorageFolder.GetFolderFromPathAsync(SavedFolder.Path);
                 MainFrame.Navigate(typeof(FilerPage), new FilerPage.NavigationParameter(GamepadActions, SavedList, SavedFolder, folder, Frame));
+
+                MarksFile? m_file = await App.MarksData.GetMarksFile(folder.Name);
+                if (m_file is null)
+                {
+                    m_file = new MarksFile();
+                    m_file.Name = folder.Name;
+                    App.MarksData.SetMarksFile(m_file);
+                }
+                MarksFile = m_file;
             }
 
             var assign = App.AssignData.MainPage.CreateAssign(GetGamepadAction);
@@ -118,7 +130,7 @@ namespace APlayer
             }
         }
 
-        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        private async void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             App.SoundPlayer.Stop();
             App.SoundPlayer.ResetPlayList();
@@ -133,6 +145,10 @@ namespace APlayer
             App.SoundPlayer.StateChanged -= SoundPlayer_StateChanged;
             App.SoundPlayer.FrameReported -= SoundPlayer_FrameReported;
 
+            if (MarksFile != null)
+            {
+                await App.MarksData.Save(MarksFile.Name);
+            }
         }
 
         private Action GetGamepadAction(GamepadAssign.MainPageGamepadAction act)
@@ -300,7 +316,12 @@ namespace APlayer
                     viewModel.PlayingTitle = e.list[e.index].Name;
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = e.list[e.index].Duration;
-                    Marker.SetMarks([], viewModel.Duration);
+
+                    if (SavedFolder != null && MarksFile != null)
+                    {
+                        var path = Path.GetRelativePath(SavedFolder.Path, viewModel.Playlist[e.index].Path);
+                        Marker.SetMarks(MarksFile.GetMarks(path), viewModel.Duration);
+                    }
                 }
             });
         }
@@ -322,7 +343,12 @@ namespace APlayer
                     viewModel.PlayingTitle = viewModel.Playlist[e].Name;
                     viewModel.PlayingPosition = TimeSpan.Zero;
                     viewModel.Duration = viewModel.Playlist[e].Duration;
-                    Marker.SetMarks([], viewModel.Duration);
+
+                    if (SavedFolder != null && MarksFile != null)
+                    {
+                        var path = System.IO.Path.GetRelativePath(SavedFolder.Path, viewModel.Playlist[e].Path);
+                        Marker.SetMarks(MarksFile.GetMarks(path), viewModel.Duration);
+                    }
                 }
             });
         }
@@ -450,6 +476,24 @@ namespace APlayer
 //                    fonticon.Glyph = "\uE70E";
             }
         }
+
+        private void Marker_Updated(object sender, TimeSpan[] e)
+        {
+            if (SavedFolder != null)
+            {
+                if (viewModel.CurrentPlaylistIndex >= 0)
+                {
+                    var path = System.IO.Path.GetRelativePath(SavedFolder.Path, viewModel.Playlist[viewModel.CurrentPlaylistIndex].Path);
+
+                    if (MarksFile != null)
+                    {
+                        MarksFile.SetMarks(path, e);
+                        MarksFile.Update = true;
+                    }
+                }
+            }
+
+        }
     }
 
     partial class PlayerViewModel : INotifyPropertyChanged
@@ -461,7 +505,7 @@ namespace APlayer
         }
 
         public IReadOnlyList<ISoundPlayer.ITrack> Playlist { get; set; } = [];
-        public int CurrentPlaylistIndex { get; set; } = 0;
+        public int CurrentPlaylistIndex { get; set; } = -1;
 
         private string playingTitle = string.Empty;
         public string PlayingTitle
@@ -568,9 +612,13 @@ namespace APlayer
 
         public static string Convert(double seconds)
         {
-            TimeSpan time = TimeSpan.FromSeconds(seconds);
+            return Convert(TimeSpan.FromSeconds(seconds));
+        }
+        public static string Convert(TimeSpan time)
+        {
             return $"{Math.Floor(time.TotalMinutes)}:{time.Seconds:d2}";
         }
+
     }
 
 }
